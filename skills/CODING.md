@@ -65,11 +65,17 @@ After a first working version:
 2. Which file does the error occur in? Or which file does the user want to optimize?
 3. Fix the code according to the error messages or optimization requirements and generate the new code for this file.
 
+# Output
+The output should be a dict with multiple items, the keys should be the file names and the values should be the code content.
+
 # Preferences
-1. The generated code should mark the language in the form of comments in the first line of the code.
-2. The code needs to be run once after generation. If the code cannot be excuted correctly, it should be fixed until it can be excuted correctly.
-3. Notes need to be concise.
-4. The output should be a dict with multiple items, the keys should be the file names and the values should be the code content.
+1. Notes need to be concise.
+
+## Example
+{
+    "file_name1.py": "'''python\n code1 \n'''",
+    "file_name2.cpp": "'''c++\n code2 \n '''",
+}
 
 # Final check
 Check whether the output meets the sytle, tone, audience and preferences.

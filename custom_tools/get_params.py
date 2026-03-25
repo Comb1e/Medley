@@ -2,11 +2,20 @@ import json
 from config import config
 
 final_answer_path = config.FINAL_ANSWER_PATH
+task_path = config.TASK_PATH
 
 def get_final_answer(type):
     with open(final_answer_path, "r", encoding="utf-8") as f:
         final_answer = json.load(f)
     return final_answer[type]
+
+def get_task(type):
+    with open(task_path, "r", encoding="utf-8") as f:
+        task = json.load(f)
+    return task[type]
+
+def get_agent_params(type):
+    return get_final_answer(type), get_task(type)
 
 def get_agent_template_params(json_path):
     with open(json_path, "r", encoding="utf-8") as f:

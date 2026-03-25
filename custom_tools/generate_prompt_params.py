@@ -46,16 +46,8 @@ def generate_prompt_params(input_raw):
 generate_prompt_params.name = "generate_prompt_params"
 generate_prompt_params.description = (
     f"Generate prompt params as a json file in {config.PROMPT_PATH} on the computer"
-    "The input is an array containing the following nine parameters in order. Each is a string, including file name, type, background, purpose, style, tone, audience and output."
-    "File name is the name of the json file, including suffix."
-    "Type is the classification of the prompt. It should be one of the 'coding, text, mixture'."
-    "Background is the prompt related context information or prerequisites."
-    "Purpose is the specific tasks or objectives to be completed."
-    "Style is the language style, style or structural format of the output."
-    "Tone is the emotional color or attitude tendency expressed."
-    "Audience is the reading group after prompt is completed. For example, if the prompt need to generate code, the audience is programmers."
-    "Folder name is the name of the folder where the files are stored(not the json file)."
-    f"Path is the place where files are generated and output information is saved. If the user did not specify it, fill it with {config.GENERATE_PATH}."
+    "The input is an array containing the following nine parameters in order. Each is a string, including file name, type, background, purpose, style, tone, audience, folder name, path."
+    f"# Attention # If the user did not specify the path, fill it with {config.GENERATE_PATH}."
     "The output is a list containing three items. The first is a boolean argument indicating whether the folder is successfully created. If failed, do the action again. The second is a string contains error message, empty while no error. The third is a string indicating the location of the json file."
 )
 generate_prompt_params.input = {

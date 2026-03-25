@@ -25,49 +25,6 @@ Begin!
 '''
 
 agent_template = '''
-#Background#
-{background}
-
-#Tools#
-The following tools are available：
-{tools}
-
-#Purpose#
-{purpose}
-
-#Style#
-{style}
-
-#Tone#
-{tone}
-
-#Audience#
-{audience}
-
-#Project Path#
-Generate the project in:
-{project_path}
-
-#Skills#
-{skills}
-
-#Task Steps#
-Firstly, Understand backgournd, purpose, style, tone, audience and preferences.
-Then, Think and act in the following format:
-
-Thought: Do I need tools? Why?
-
-Action: Tool name to use (must be one of {tool_names}).
-Action Input: Input parameters of the tool.
-Observation: Results returned by the tool.
-... (repeatable five times, output the number of attempts when starting a new attempt)
-Final check: Check whether the output meets the output sytle, tone, audience and preferences.
-Final Answer: {final_answer}
-
-Thought: {agent_scratchpad}
-'''
-
-prompt_get_template = '''
 #Raw Prompt#
 {raw_prompt}
 
@@ -76,25 +33,14 @@ The following tools are available：
 {tools}
 
 #Task#
-Help the user classify problems and optimize prompt structure.
+{task}
 
 #Skills#
 {skills}
 
-#Examples#
-Input:
-raw_prompt: How to respond appropriately to the difficulties of users as customer service. Generate in "C:/Users/Public/Desktop/customer_service_answer".
-
-Output:
-file_name: "customer_service_prompt.json"
-type: "text"
-background: "As a customer service, you need to properly solve the difficulties encountered by users."
-purpose: "Improve customer experience and satisfaction with reasonable language."
-style: "Practical orientation: emphasizing operable and specific behavior suggestions."
-tone: "empathy, positive."
-audience: "Customers."
-folder_name: "customer_service_answer"
-path: "C:/Users/Public/Desktop"
+#Main distinctions#
+1. The tool "get_files_in_folder" should be use to check the folder {prompt_folder}
+2. The parameter "path" should be the path indicated by the user in #Raw Prompt#. If the user did not indicate one, it should be {default_generate_path}.
 
 #Task Steps#
 Think and act in the following format:
@@ -112,4 +58,3 @@ Thought: {agent_scratchpad}
 
 llm_prompt_template = PromptTemplate.from_template(llm_template)
 agent_prompt_template = PromptTemplate.from_template(agent_template)
-prompt_get_prompt_template = PromptTemplate.from_template(prompt_get_template)

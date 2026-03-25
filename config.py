@@ -13,6 +13,7 @@ class config:
 
     PROMPT_PARAMS_PATH = ROOT_DIR / "prompt_params"
     FINAL_ANSWER_PATH = PROMPT_PARAMS_PATH / "final_answer.json"
+    TASK_PATH = PROMPT_PARAMS_PATH / "task.json"
 
     LOG_PATH = ROOT_DIR / "logs"
     PROMPT_PATH = LOG_PATH / "prompts"

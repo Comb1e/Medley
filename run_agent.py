@@ -16,6 +16,7 @@ BASE_REQUIRED_ENV_VARS = [
 ]
 check_env_vars(BASE_REQUIRED_ENV_VARS)
 
+'''
 user_query = "Write a 'flappy bird' game in python."
 base_prompt_params_path = get_prompt(user_query)
 print(base_prompt_params_path)
@@ -26,7 +27,7 @@ BASE_SKILL_PATHS = [
 ]
 base_agent = agent(
     #json_path = base_prompt_params_path,
-    json_path = "E:/Projects/Agent/logs/prompts/flappy_bird_prompt.json",
+    json_path = "E:/Projects/Agent/logs/prompts/flappy_bird_game.json",
     skill_paths = BASE_SKILL_PATHS,
     type = "base",
     tools = tools,
@@ -35,4 +36,3 @@ base_agent = agent(
 )
 result = base_agent.invoke()
 print(result)
-'''

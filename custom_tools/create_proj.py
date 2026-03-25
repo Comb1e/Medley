@@ -28,8 +28,8 @@ def create_folder(input_raw) -> bool:
     base_path = Path(base_dir)
     new_folder_path = base_path / folder_name
     if new_folder_path.exists():
-        print(f"\nFolder {new_folder_path} existed, no need to create.")
         result_list[0] = True
+        result_list[1] = f"\nFolder {new_folder_path} existed, no need to create."
         return result_list
 
     new_folder_path.mkdir(parents=True, exist_ok=True)

@@ -53,9 +53,8 @@ def generate_code(input_raw):
 
 generate_code.name = "generate_code"
 generate_code.description = (
-    "# Must use get_prompt(raw_prompt) tool to generate the prompt parameters and save them in a JSON file. Then input the file path of the JSON file to this tool to generate code. #"
+    "# Must use get_prompt(raw_prompt) tool to generate the prompt parameters. #"
     "# Must use this tool when you need code. #"
-    "#If the code is excutable, excute it after generating to ensure correctness of the code#"
     "Create a file in the specified location on the computer and write code."
     "The input is a string containing the path of the JSON file with the prompt parameter."
     "The output is a list containing three items. The first is a boolean argument indicating whether the code is generated successfully, true for success. The second is a string contains error message, empty while no error. The third is an array containing multiple items, each is the path to the code file just generated ."
