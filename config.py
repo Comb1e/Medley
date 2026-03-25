@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 
-load_dotenv()
+load_dotenv(".env.local", override=True)
 
 class config:
     ROOT_DIR = Path(__file__).resolve().parent
