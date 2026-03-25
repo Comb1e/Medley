@@ -50,6 +50,7 @@ import io, sys
 import ast
 import traceback
 import multiprocessing
+from queue import Empty
 
 # 定义子进程执行的任务函数
 # 注意：在 Windows 上，此函数必须定义在模块顶层，以便 pickle 序列化
@@ -57,27 +58,50 @@ def _run_code_task(code_str, output_queue):
     """
     在子进程中执行代码并捕获输出/异常。
     """
-    # 重定向子进程的 stdout
+    # 1. 重定向 stdout 和 stderr
     old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    old_stdin = sys.stdin
+
     redirected_output = io.StringIO()
+    redirected_error = io.StringIO()
+    redirected_input = io.StringIO("")  # 空输入源
+
     sys.stdout = redirected_output
+    sys.stderr = redirected_error
+    sys.stdin = redirected_input  # 关键修复
 
     try:
-        exec_globals = {"__name__": "__main__"}
-        exec(code_str, exec_globals)
+        # 2. 执行环境配置
+        # 注意：这里依然没有做沙箱限制，生产环境需限制 __builtins__
+        def safe_input(prompt=""):
+            print(prompt, end="", file=sys.stdout)
+            return ""  # 返回空字符串而不是抛异常
+
+        exec_globals = {
+            "__name__": "__main__",
+            "__file__": "dynamic_code",
+            "input": safe_input  # 覆盖 input 函数
+        }
+
         output = redirected_output.getvalue()
-        # 将成功结果放入队列：(success=True, output=output, error=None)
-        output_queue.put((True, output, None))
+        error = redirected_error.getvalue()
+
+        # 3. 成功结果
+        output_queue.put((True, output, error, None))
     except Exception as e:
         output = redirected_output.getvalue()
+        error_output = redirected_error.getvalue()
         error_trace = traceback.format_exc()
-        # 将失败结果放入队列：(success=False, output=output, error=error_trace)
-        output_queue.put((False, output, error_trace))
+        # 4. 失败结果
+        output_queue.put((False, output, error_output + "\n" + error_trace, None))
     finally:
+        # 5. 恢复标准输出
         sys.stdout = old_stdout
+        sys.stderr = old_stderr
 
 
-def execute_python_code(file_path, timeout_seconds=30) -> bool:
+def execute_python_code(file_path) -> bool:
     """
     在受限环境中执行 Python 代码，带超时控制。
 
@@ -93,6 +117,8 @@ def execute_python_code(file_path, timeout_seconds=30) -> bool:
     返回:
         bool: True 表示成功或超时未报错，False 表示执行出错
     """
+    timeout_seconds=30
+
     # 1. 读取代码
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -102,6 +128,7 @@ def execute_python_code(file_path, timeout_seconds=30) -> bool:
         return False
 
     # 2. 创建通信队列和进程
+    # 注意：Windows 下必须确保此代码在 __main__ 保护下调用
     output_queue = multiprocessing.Queue()
     process = multiprocessing.Process(target=_run_code_task, args=(code_to_run, output_queue))
 
@@ -113,29 +140,34 @@ def execute_python_code(file_path, timeout_seconds=30) -> bool:
 
     # 4. 处理超时或正常结束
     if process.is_alive():
-        # 情况 3: 时间到了，进程还在跑，且没有报错（因为报错会提前退出）
+        # 情况 3: 超时，强制终止
         print(f"[Timeout] Execution exceeded {timeout_seconds} seconds. Terminating process...")
         process.terminate()
-        process.join()
-        print("Execution terminated due to timeout. Treated as SUCCESS (no error detected within limit).")
+        process.join() # 确保进程清理
+        print("Execution terminated due to timeout. Treated as SUCCESS.")
         return True
     else:
         # 进程已结束，检查是成功还是报错
         try:
-            # 从队列获取结果，设置一个小超时防止队列空读阻塞
-            success, output, error_trace = output_queue.get(timeout=1)
+            # 从队列获取结果
+            # 注意：如果子进程在 put 之前崩溃（极罕见），这里会抛 Empty
+            success, output, error_output, _ = output_queue.get(timeout=5)
 
             if success:
-                result_msg = f"Execution succeeded.\nOutput:\n{output}" if output else "Execution succeeded without output."
+                # 合并 stdout 和 stderr 显示
+                full_output = (output + "\n" + error_output).strip()
+                result_msg = f"Execution succeeded.\nOutput:\n{full_output}" if full_output else "Execution succeeded without output."
                 print(result_msg)
                 return True
             else:
-                result_msg = f"Execution error:\n{output}\n{error_trace}"
+                result_msg = f"Execution error:\n{error_output}"
                 print(result_msg)
                 return False
-        except multiprocessing.queues.Empty:
-            # 理论上不会发生，因为 process.join() 已完成
-            print("Execution finished but failed to retrieve result.")
+        except Empty:
+            print("Execution finished but failed to retrieve result (Queue Empty).")
+            return False
+        except Exception as e:
+            print(f"Unexpected error retrieving result: {e}")
             return False
 execute_python_code.name = "execute_python_code"
 execute_python_code.description = (
@@ -151,7 +183,9 @@ execute_python_code.output = {
 }
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
+
     #required_packages = "[(\"requests\", \"requests\"), (\"numpy\", \"numpy\"), (\"pandas\", \"pandas\"),]"
     #check_and_install_packages(required_packages)
     test_path = "E:/Projects/Agent/logs/generated_files/box_pushing_game/box_pushing_game.py"
-    execute_python_code(test_path)
+    #execute_python_code(test_path)

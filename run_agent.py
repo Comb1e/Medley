@@ -21,12 +21,14 @@ BASE_SKILL_PATHS = [
 ]
 base_agent = agent(
     #json_path = base_prompt_params_path,
-    raw_prompt = "Write a box pushing game in python.",
+    raw_prompt = "写一份识别发绿光的长方形的python代码",
     skill_paths = BASE_SKILL_PATHS,
     type = "base",
     tools = tools,
     model_name = config.BASE_AGENT_NAME,
     temperature = 0,
 )
-result = base_agent.invoke()
-print(result)
+
+if __name__ == "__main__":
+    result = base_agent.invoke()
+    print(result)
