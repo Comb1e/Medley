@@ -3,7 +3,7 @@ from config import config
 from custom_tools.prompt_tools import prompt_tools
 from custom_tools.verification import check_env_vars
 
-from small_agents.agent_template import prompt_agent
+from small_agents.agent_template import agent
 
 PROMPT_REQUIRED_ENV_VARS = [
     "PROMPT_AGENT_NAME",
@@ -16,9 +16,11 @@ PROMPT_SKILL_PATHS = [
 
 # ====== get_prompt ======
 def get_prompt(raw_prompt):
-    get_prompt_agent = prompt_agent(
+    get_prompt_agent = agent(
+        type = "prompt",
         raw_prompt = raw_prompt,
         skill_paths = PROMPT_SKILL_PATHS,
+        model_name = config.PROMPT_AGENT_NAME,
         tools = prompt_tools,
         temperature = 0
     )

@@ -18,9 +18,10 @@ CODING_SKILL_PATHS = [
 # ====== use LLM for coding =====
 def generate_code(input_raw):
     result_list = [False, "", []]
-    if is_valid_windows_path_format(input_raw) == False:
+    error_msg = is_valid_windows_path_format(input_raw)
+    if error_msg[0] == False:
         print(input_raw)
-        result_list[1] = "Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names."
+        result_list[1] = "Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names.\n" + error_msg[1]
         return result_list
 
     json_path = input_raw
@@ -41,9 +42,10 @@ def generate_code(input_raw):
         return result_list
 
     for key in result_dict.keys():
-        if is_valid_windows_path_format(file_paths / key) == False:
+        error_msg = is_valid_windows_path_format(str(file_paths / key))
+        if error_msg[0] == False:
             print(file_paths / key)
-            result_list[1] = "The prompt is inaccurate. Regenerate the prompt and use this tool"
+            result_list[1] = "The prompt is inaccurate. Regenerate the prompt and use this tool\n" + error_msg[1]
             return result_list
         result_list[2].append(file_paths / key)
         create_file(file_paths / key, result_dict[key])
@@ -54,10 +56,12 @@ def generate_code(input_raw):
 generate_code.name = "generate_code"
 generate_code.description = (
     "# Must use get_prompt(raw_prompt) tool to generate the prompt parameters. #"
-    "# Must use this tool when you need code. #"
     "Create a file in the specified location on the computer and write code."
     "The input is a string containing the path of the JSON file with the prompt parameter."
-    "The output is a list containing three items. The first is a boolean argument indicating whether the code is generated successfully, true for success. The second is a string contains error message, empty while no error. The third is an array containing multiple items, each is the path to the code file just generated ."
+    "The output is a list containing three items."
+    "The first is a boolean argument indicating whether the code is generated successfully, true for success."
+    "The second is a string contains error message, empty while no error."
+    "The third is an array containing multiple items, each is the path to the code file just generated ."
 )
 generate_code.input = {
     "file_dir": str

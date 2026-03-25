@@ -1,9 +1,13 @@
 from pathlib import Path
 import ast
 import re
-from custom_tools.verification import is_valid_windows_path_format, is_valid_folder_file_name
 
-def create_folder(input_raw) -> bool:
+if __name__ == "__main__":
+    from verification import is_valid_windows_path_format, is_valid_folder_file_name
+else:
+    from custom_tools.verification import is_valid_windows_path_format, is_valid_folder_file_name
+
+def create_folder(input_raw) -> list:
     """Create a folder in the specified location on the computer"""
     result_list = [False, ""]
     try:
@@ -13,14 +17,16 @@ def create_folder(input_raw) -> bool:
         result_list[1] = "Invalid input format. Please provide a valid list of [base_dir, folder_name]."
         return result_list
 
-    if is_valid_windows_path_format(input[0]) == False:
+    error_msg = is_valid_windows_path_format(input[0])
+    if error_msg[0] == False:
         print(input[0])
-        result_list[1] = "Invalid folder address format. Please provide a valid Windows path."
+        result_list[1] = "Invalid folder address format. Please provide a valid Windows path.\n" + error_msg[1]
         return result_list
 
-    if is_valid_folder_file_name(input[1]) == False:
+    error_msg = is_valid_folder_file_name(input[1])
+    if error_msg[0] == False:
         print(input[1])
-        result_list[1] = "Invalid folder name. Please provide a valid folder name that does not contain illegal characters or reserved names."
+        result_list[1] = "Invalid folder name. Please provide a valid folder name that does not contain illegal characters or reserved names.\n" + error_msg[1]
         return result_list
 
     base_dir = input[0]
@@ -65,6 +71,8 @@ def create_file(file_path, code_block):
     if md_code_block == None:
         # 如果没有代码块，尝试提取所有可能的代码
         code = code_block
+
+    create_folder("['" + str(file_path.parent.parent) + "', '" + str(file_path.parent.name) + "']")
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(code)
 
@@ -75,4 +83,8 @@ language_type = [r"python", r"java", r"css", r"c++", r"javascript", r"go", r"rub
 # ====== test ======
 if __name__ == "__main__":
     #generate_code([create_folder(["E:/Projects/Python/agent_test", "test"]), "test.txt", "hello"])
-    create_folder("[\"E:/Projects/Python/agent_test\", \"bayesian\"]")
+    #create_folder("[\"E:/Projects/Python/agent_test\", \"bayesian\"]")
+    create_file(
+        Path('E:\\Projects\\Agent\\logs\\generated_files\\flappy_bird_project\\flappy_bird.py'),
+        "hello"
+    )

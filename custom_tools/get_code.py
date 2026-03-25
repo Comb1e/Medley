@@ -47,22 +47,27 @@ get_files_in_folder.output = {
     "...": str,
 }
 
-def get_code(input_raw) -> [str, str]:
+def get_code(input_raw) -> [bool, str, str, str]:
+    result_list = [False, "", "", ""]
     try:
         input = ast.literal_eval(input_raw)
     except:
         print(input_raw)
-        raise ValueError("Invalid input format. Please provide a valid list of [base_dir, file_name].")
+        result_list[1] = "Invalid input format. Please provide a valid list of [base_dir, file_name]."
+        return result_list
 
-    if is_valid_windows_path_format(input[0]) == False:
+    error_msg = is_valid_windows_path_format(input[0])
+    if error_msg[0] == False:
         print(input[0])
-        raise ValueError("Invalid folder address format. Please provide a valid Windows path.")
+        result_list[1] = "Invalid folder address format. Please provide a valid Windows path.\n" + error_msg[1]
+        return result_list
 
-    if is_valid_folder_file_name(input[1]) == False:
+    error_msg = is_valid_folder_file_name(input[1])
+    if error_msg[0] == False:
         print(input[1])
-        raise ValueError("Invalid file name. Please provide a valid file name that does not contain illegal characters or reserved names.")
+        result_list[1] = "Invalid file name. Please provide a valid file name that does not contain illegal characters or reserved names.\n" + error_msg[1]
+        return result_list
 
-    print(input)
     base_dir = input[0]
     file_name = input[1]
     output = ["", ""]
@@ -82,18 +87,23 @@ def get_code(input_raw) -> [str, str]:
 
     return output
 
-
 get_code.name = "get_code"
 get_code.description = (
     "Get code in the specified location on the computer"
     "The input is an array containing two items, including file address, file name in order."
-    "The output is an array containing two items, including language type and all the code in the file."
+    "The output is an array containing four items."
+    "The first is a boolean argument indicating whether the code is generated successfully, true for success."
+    "The second is a string contains error message, empty while no error."
+    "The third is language type"
+    "The fourth is all the code in the file."
 )
 get_code.input = {
     "base_dir": str,
     "file_name": str,
 }
 get_code.output = {
+    "is_success": bool,
+    "error_message": str,
     "language_type": str,
     "code": str,
 }

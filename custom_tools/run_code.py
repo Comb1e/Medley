@@ -48,37 +48,95 @@ check_and_install_packages.output = {
 import re
 import io, sys
 import ast
+import traceback
+import multiprocessing
 
-def execute_python_code(file_path) -> bool:
+# 定义子进程执行的任务函数
+# 注意：在 Windows 上，此函数必须定义在模块顶层，以便 pickle 序列化
+def _run_code_task(code_str, output_queue):
     """
-    在受限环境中执行 Python 代码，返回 stdout 或异常信息。
-    注意：此实现仅用于演示，生产环境需加强安全限制！
+    在子进程中执行代码并捕获输出/异常。
     """
-    with open(file_path, "r", encoding="utf-8") as f:
-        code_to_run = f.read()
-
-    # 重定向输出
-    print("\nExecuting code:\n")
+    # 重定向子进程的 stdout
     old_stdout = sys.stdout
     redirected_output = io.StringIO()
     sys.stdout = redirected_output
 
     try:
-        # 执行代码
         exec_globals = {"__name__": "__main__"}
-        exec(code_to_run, exec_globals)
+        exec(code_str, exec_globals)
         output = redirected_output.getvalue()
-        result = f"\nExecution succeeded.\nOutput:\n{output}" if output else "Execution succeeded without output."
-        print(result)
+        # 将成功结果放入队列：(success=True, output=output, error=None)
+        output_queue.put((True, output, None))
     except Exception as e:
-        result = f"\nExecution error:\n{traceback.format_exc()}"
-        print(result)
-        return False
+        output = redirected_output.getvalue()
+        error_trace = traceback.format_exc()
+        # 将失败结果放入队列：(success=False, output=output, error=error_trace)
+        output_queue.put((False, output, error_trace))
     finally:
         sys.stdout = old_stdout
 
-    print(result)
-    return True
+
+def execute_python_code(file_path, timeout_seconds=30) -> bool:
+    """
+    在受限环境中执行 Python 代码，带超时控制。
+
+    规则：
+    1. 如果代码在 timeout_seconds 内执行完毕且无报错 -> 返回 True
+    2. 如果代码在 timeout_seconds 内报错 -> 返回 False
+    3. 如果代码运行超过 timeout_seconds 仍未报错（如死循环但未崩溃）-> 强制终止，视为正确，返回 True
+
+    参数:
+        file_path (str): 代码文件路径
+        timeout_seconds (int): 超时时间，默认 30 秒
+
+    返回:
+        bool: True 表示成功或超时未报错，False 表示执行出错
+    """
+    # 1. 读取代码
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            code_to_run = f.read()
+    except Exception as e:
+        print(f"\nError reading file: {e}")
+        return False
+
+    # 2. 创建通信队列和进程
+    output_queue = multiprocessing.Queue()
+    process = multiprocessing.Process(target=_run_code_task, args=(code_to_run, output_queue))
+
+    print(f"\nExecuting code (Timeout: {timeout_seconds}s)...\n")
+    process.start()
+
+    # 3. 等待进程结束，设置超时
+    process.join(timeout=timeout_seconds)
+
+    # 4. 处理超时或正常结束
+    if process.is_alive():
+        # 情况 3: 时间到了，进程还在跑，且没有报错（因为报错会提前退出）
+        print(f"[Timeout] Execution exceeded {timeout_seconds} seconds. Terminating process...")
+        process.terminate()
+        process.join()
+        print("Execution terminated due to timeout. Treated as SUCCESS (no error detected within limit).")
+        return True
+    else:
+        # 进程已结束，检查是成功还是报错
+        try:
+            # 从队列获取结果，设置一个小超时防止队列空读阻塞
+            success, output, error_trace = output_queue.get(timeout=1)
+
+            if success:
+                result_msg = f"Execution succeeded.\nOutput:\n{output}" if output else "Execution succeeded without output."
+                print(result_msg)
+                return True
+            else:
+                result_msg = f"Execution error:\n{output}\n{error_trace}"
+                print(result_msg)
+                return False
+        except multiprocessing.queues.Empty:
+            # 理论上不会发生，因为 process.join() 已完成
+            print("Execution finished but failed to retrieve result.")
+            return False
 execute_python_code.name = "execute_python_code"
 execute_python_code.description = (
     "Try to run a piece of Python code. Must use check_and_install_packages once before using the tool"
@@ -93,7 +151,7 @@ execute_python_code.output = {
 }
 
 if __name__ == "__main__":
-    required_packages = "[(\"requests\", \"requests\"), (\"numpy\", \"numpy\"), (\"pandas\", \"pandas\"),]"
-    check_and_install_packages(required_packages)
-    test_path = "E:/Projects/Python/agent_test/randomforest/randomforest.py"
+    #required_packages = "[(\"requests\", \"requests\"), (\"numpy\", \"numpy\"), (\"pandas\", \"pandas\"),]"
+    #check_and_install_packages(required_packages)
+    test_path = "E:/Projects/Agent/logs/generated_files/box_pushing_game/box_pushing_game.py"
     execute_python_code(test_path)

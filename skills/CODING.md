@@ -70,11 +70,12 @@ The output should be a dict with multiple items, the keys should be the file nam
 
 # Preferences
 1. Notes need to be concise.
+2. Do not mark the language before the output dict.
 
 ## Example
 {
-    "file_name1.py": "'''python\n code1 \n'''",
-    "file_name2.cpp": "'''c++\n code2 \n '''",
+    "file_name1.py": "code1 \n",
+    "file_name2.cpp": "c++\n code2 \n",
 }
 
 # Final check

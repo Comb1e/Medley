@@ -12,9 +12,10 @@ def generate_prompt_params(input_raw):
         result_list[1] = "Invalid input format. Please provide a valid list of [file_name, type, background, purpose, style, tone, audience]."
         return result_list
 
-    if is_valid_folder_file_name(input[0]) == False:
+    error_msg = is_valid_folder_file_name(input[0])
+    if error_msg[0] == False:
         print(input[0])
-        result_list[1] = "Invalid file name. Please provide a valid file name that does not contain illegal characters or reserved names."
+        result_list[1] = "Invalid file name. Please provide a valid file name that does not contain illegal characters or reserved names.\n" + error_msg[1]
         return result_list
 
     file_name = input[0]
