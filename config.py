@@ -7,6 +7,7 @@ load_dotenv(".env.local", override=True)
 class config:
     ROOT_DIR = Path(__file__).resolve().parent
     SKILL_PATH = ROOT_DIR / "skills"
+    USER_PROMPT_PATH = ROOT_DIR / "user_prompt.md"
 
     PROMPT_PARAMS_PATH = ROOT_DIR / "prompt_params"
     FINAL_ANSWER_PATH = PROMPT_PARAMS_PATH / "final_answer.json"

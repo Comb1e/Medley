@@ -5,6 +5,7 @@ os.environ["DASHSCOPE_API_KEY"] = config.DASHSCOPE_API_KEY
 from custom_tools.tools import tools
 from custom_tools.verification import check_env_vars
 from custom_tools.run_code import check_and_install_packages, execute_python_code
+from custom_tools.get_params import get_user_prompt
 
 from small_agents.agent_template import agent
 
@@ -17,8 +18,9 @@ check_env_vars(BASE_REQUIRED_ENV_VARS)
 BASE_SKILL_PATHS = [
     config.SKILL_PATH / "BASE.md"
 ]
+
 base_agent = agent(
-    raw_prompt = "生成一篇解释人与自然和谐共生的议论文,400字以内",
+    raw_prompt = get_user_prompt(),
     skill_paths = BASE_SKILL_PATHS,
     type = "base",
     tools = tools,

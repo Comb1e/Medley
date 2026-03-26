@@ -3,6 +3,7 @@ from config import config
 
 final_answer_path = config.FINAL_ANSWER_PATH
 task_path = config.TASK_PATH
+user_prompt_path = config.USER_PROMPT_PATH
 
 def get_final_answer(type):
     with open(final_answer_path, "r", encoding="utf-8") as f:
@@ -28,3 +29,8 @@ def get_skills(skill_paths):
         with open(skill_path, "r", encoding="utf-8") as f:
             skills += f.read()
     return skills
+
+def get_user_prompt():
+    with open(user_prompt_path, "r", encoding="utf-8") as f:
+        user_prompt = f.read()
+    return user_prompt
