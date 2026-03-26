@@ -62,8 +62,7 @@ After a first working version:
 
 # Fix Code
 1. What errors does the user encounter when executing the code? Or what functions does the user want to optimize?
-2. Which file does the error occur in? Or which file does the user want to optimize?
-3. Fix the code according to the error messages or optimization requirements and generate the new code for this file.
+2. Fix the code according to the error messages or optimization requirements and generate the new code for this file.
 
 # Output
 The output should be a dict with multiple items, the keys should be the file names and the values should be the code content.
@@ -74,8 +73,8 @@ The output should be a dict with multiple items, the keys should be the file nam
 
 ## Example
 {
-    "file_name1.py": "code1 \n",
-    "file_name2.cpp": "c++\n code2 \n",
+    "file_name1.py": "code1",
+    "file_name2.cpp": "code2",
 }
 
 # Final check

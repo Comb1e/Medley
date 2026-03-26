@@ -3,7 +3,7 @@ from custom_tools.create_proj import create_folder
 from custom_tools.run_code import check_and_install_packages, execute_python_code
 from custom_tools.get_code import get_code, get_files_in_folder
 
-from small_agents.coding import generate_code
+from small_agents.coding import generate_or_fix_code
 from small_agents.prompt import get_prompt
 
 # ====== define tools ======
@@ -16,6 +16,31 @@ tools = [
         input=create_folder.input,
         output=create_folder.output
     ),
+    Tool(
+        name=get_files_in_folder.name,
+        func=get_files_in_folder,
+        description=get_files_in_folder.description,
+        input=get_files_in_folder.input,
+        output=get_files_in_folder.output
+    ),
+
+    Tool(
+        name=generate_or_fix_code.name,
+        func=generate_or_fix_code,
+        description=generate_or_fix_code.description,
+        input=generate_or_fix_code.input,
+        output=generate_or_fix_code.output
+    ),
+    Tool(
+        name=get_prompt.name,
+        func=get_prompt,
+        description=get_prompt.description,
+        input=get_prompt.input,
+        output=get_prompt.output
+    )
+]
+
+'''
     Tool(
         name=check_and_install_packages.name,
         func=check_and_install_packages,
@@ -37,26 +62,4 @@ tools = [
         input=get_code.input,
         output=get_code.output
     ),
-    Tool(
-        name=get_files_in_folder.name,
-        func=get_files_in_folder,
-        description=get_files_in_folder.description,
-        input=get_files_in_folder.input,
-        output=get_files_in_folder.output
-    ),
-
-    Tool(
-        name=generate_code.name,
-        func=generate_code,
-        description=generate_code.description,
-        input=generate_code.input,
-        output=generate_code.output
-    ),
-    Tool(
-        name=get_prompt.name,
-        func=get_prompt,
-        description=get_prompt.description,
-        input=get_prompt.input,
-        output=get_prompt.output
-    )
-]
+'''

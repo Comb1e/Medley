@@ -16,19 +16,43 @@ CODING_SKILL_PATHS = [
 ]
 
 # ====== use LLM for coding =====
-def generate_code(input_raw):
+def generate_or_fix_code(input_raw):
     result_list = [False, "", []]
-    error_msg = is_valid_windows_path_format(input_raw)
+    try:
+        input = ast.literal_eval(input_raw)
+    except:
+        print(input_raw)
+        result_list[1] = "Invalid input format. Please provide a valid list of [json_dir, code_dir]."
+        return result_list
+
+    error_msg = is_valid_windows_path_format(input[0])
     if error_msg[0] == False:
         print(input_raw)
         result_list[1] = "Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names.\n" + error_msg[1]
         return result_list
+    json_path = input[0]
 
-    json_path = input_raw
+    if input[1] != "":
+        error_msg = is_valid_windows_path_format(input[1])
+        if error_msg[0] == False:
+            print(input_raw)
+            result_list[1] = "Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names.\n" + error_msg[1]
+            return result_list
+        code_path = input[1]
+        try:
+            with open(code_path, 'r', encoding='utf-8') as file:
+                other = file.read()
+        except:
+            result_list[1] = "The second input is invalid."
+            return result_list
+    else:
+        other = ""
+
     coding_llm = llm(
         json_path = json_path,
         skill_paths = CODING_SKILL_PATHS,
         type = "coding",
+        other = other,
         model_name = config.CODING_MODEL_NAME,
         temperature = 0
     )
@@ -50,28 +74,27 @@ def generate_code(input_raw):
         result_list[2].append(file_paths / key)
         create_file(file_paths / key, result_dict[key])
     result_list[0] = True
-    result_list[1] = "Code generated successfully."
+    result_list[1] = "Success."
     return result_list
 
-generate_code.name = "generate_code"
-generate_code.description = (
+generate_or_fix_code.name = "generate_or_fix_code"
+generate_or_fix_code.description = (
     "# Must use get_prompt(raw_prompt) tool to generate the prompt parameters. #"
-    "Create a file in the specified location on the computer and write code."
-    "The input is a string containing the path of the JSON file with the prompt parameter."
+    "Create a file in the specified location on the computer and write code. Or fix code in the specified location."
+    "The input is a list containing two items."
+    "The first is a string containing the path of the JSON file with the prompt parameter."
+    "The second is a string containing the path of the code to get fixed. If the task is to generate, leave it empty."
     "The output is a list containing three items."
     "The first is a boolean argument indicating whether the code is generated successfully, true for success."
     "The second is a string contains error message, empty while no error."
     "The third is an array containing multiple items, each is the path to the code file just generated ."
 )
-generate_code.input = {
-    "file_dir": str
+generate_or_fix_code.input = {
+    "json_dir": str,
+    "code_dir": str
 }
-generate_code.output = {
+generate_or_fix_code.output = {
     "is_success": bool,
     "error_message": str,
     "file_paths": [str, str, ...],
 }
-
-#todo: add code fixing tool
-def fix_code(input_raw):
-    return

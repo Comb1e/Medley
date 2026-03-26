@@ -19,6 +19,9 @@ class config:
     PROMPT_PATH = LOG_PATH / "prompts"
     GENERATE_PATH = LOG_PATH / "generated_files"
 
+    MEMORY_PATH = ROOT_DIR / "memory"
+    MEMORY_LOGS_PATH = MEMORY_PATH / "logs"
+
     DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
 
     BASE_AGENT_NAME = os.getenv("BASE_AGENT_NAME")

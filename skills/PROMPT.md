@@ -16,6 +16,7 @@ description: Considerations for optimizing prompt.
 
 # Prompt Preferences
 1. Before using generate_prompt_params, use get_files_in_folder to get the file names in the default prompt folder. Avoid creating files with the same name.
+2. Each parameter should be as detailed as possible to avoid vague descriptions.
 
 # Examples
 ## Input:

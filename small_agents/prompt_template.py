@@ -21,10 +21,19 @@ llm_template = '''
 #Skills#
 {skills}
 
+{other}
+
 Begin!
 '''
 
 agent_template = '''
+#Memory#
+{memory}
+
+#Core#
+If the user's prompt can be explained in a few sentences, answer directly.
+But do not directly generate any code or argumentative paper, you only need to provide detailed descriptions and standardize the user's prompt.
+
 #Raw Prompt#
 {raw_prompt}
 
@@ -49,7 +58,7 @@ Thought: Do I need tools? Why?
 Action: Tool name to use (must be one of {tool_names}).
 Action Input: Input parameters of the tool.
 Observation: Results returned by the tool.
-... (repeatable two times, output the number of attempts when starting a new attempt)
+... (repeatable five times, output the number of attempts when starting a new attempt)
 Final check: Check whether the output meets the examples.
 Final Answer: {final_answer}
 

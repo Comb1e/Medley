@@ -1,4 +1,4 @@
 {
     "prompt": "A json file path.",
-    "base": "Tell the user whether the task is completed"
+    "base": "Tell the user whether the task is completed."
 }

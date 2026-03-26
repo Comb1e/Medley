@@ -173,7 +173,7 @@ execute_python_code.name = "execute_python_code"
 execute_python_code.description = (
     "Try to run a piece of Python code. Must use check_and_install_packages once before using the tool"
     "Input is the path of the python file to be executed."
-    "The output is a bool indicating whether the code is successfully excuted. If failed, check and fix code"
+    "The output is a bool indicating whether the code is successfully excuted."
 )
 execute_python_code.input = {
     "file_path": str,
