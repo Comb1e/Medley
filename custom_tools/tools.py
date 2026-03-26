@@ -3,7 +3,7 @@ from custom_tools.create_proj import create_folder
 from custom_tools.run_code import check_and_install_packages, execute_python_code
 from custom_tools.get_code import get_code, get_files_in_folder
 
-from small_agents.coding import generate_or_fix_code
+from small_agents.text_related import text_related_generation
 from small_agents.prompt import get_prompt
 
 # ====== define tools ======
@@ -25,11 +25,11 @@ tools = [
     ),
 
     Tool(
-        name=generate_or_fix_code.name,
-        func=generate_or_fix_code,
-        description=generate_or_fix_code.description,
-        input=generate_or_fix_code.input,
-        output=generate_or_fix_code.output
+        name=text_related_generation.name,
+        func=text_related_generation,
+        description=text_related_generation.description,
+        input=text_related_generation.input,
+        output=text_related_generation.output
     ),
     Tool(
         name=get_prompt.name,

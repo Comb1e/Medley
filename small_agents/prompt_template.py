@@ -30,10 +30,6 @@ agent_template = '''
 #Memory#
 {memory}
 
-#Core#
-If the user's prompt can be explained in a few sentences, answer directly.
-But do not directly generate any code or argumentative paper, you only need to provide detailed descriptions and standardize the user's prompt.
-
 #Raw Prompt#
 {raw_prompt}
 

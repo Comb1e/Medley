@@ -3,6 +3,9 @@ name: PROMPT
 description: Considerations for optimizing prompt.
 ---
 
+# Core
+Only need to provide detailed descriptions and standardize the user's prompt.
+
 # Parameters to generate
 1. File name is the name of the json file, including suffix.
 2. Type is the classification of the prompt. It should be one of the 'coding, text, mixture'.

@@ -11,7 +11,7 @@ PROMPT_REQUIRED_ENV_VARS = [
 check_env_vars(PROMPT_REQUIRED_ENV_VARS)
 
 PROMPT_SKILL_PATHS = [
-    config.PROMPT_SKILL_PATH
+    config.SKILL_PATH / "PROMPT.md"
 ]
 
 # ====== get_prompt ======

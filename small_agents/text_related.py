@@ -1,4 +1,5 @@
 import ast
+import json
 from config import config
 
 from custom_tools.verification import is_valid_windows_path_format, check_env_vars
@@ -6,17 +7,32 @@ from custom_tools.create_proj import create_file
 
 from small_agents.agent_template import llm
 
-CODING_REQUIRED_ENV_VARS = [
+TEXTING_REQUIRED_ENV_VARS = [
     'CODING_MODEL_NAME',
+    'TEXTING_MODEL_NAME'
 ]
-check_env_vars(CODING_REQUIRED_ENV_VARS)
+check_env_vars(TEXTING_REQUIRED_ENV_VARS)
 
 CODING_SKILL_PATHS = [
-    config.CODING_SKILL_PATH
+    config.SKILL_PATH / "TEXT_RELATED.md",
+    config.SKILL_PATH / "CODING.md"
 ]
 
-# ====== use LLM for coding =====
-def generate_or_fix_code(input_raw):
+TEXTING_SKILL_PATHS = [
+    config.SKILL_PATH / "TEXT_RELATED.md",
+    config.SKILL_PATH / "TEXTING.md"
+]
+
+def get_llm_params(json_path):
+    with open(json_path, "r", encoding="utf-8") as f:
+        task_type = json.load(f)["type"]
+    if task_type == "coding":
+        return CODING_SKILL_PATHS, config.CODING_MODEL_NAME
+    elif task_type == "text":
+        return TEXTING_SKILL_PATHS, config.TEXTING_MODEL_NAME
+
+# ====== LLM =====
+def text_related_generation(input_raw):
     result_list = [False, "", []]
     try:
         input = ast.literal_eval(input_raw)
@@ -48,12 +64,13 @@ def generate_or_fix_code(input_raw):
     else:
         other = ""
 
+    llm_skill_paths, llm_model_name = get_llm_params(json_path)
     coding_llm = llm(
         json_path = json_path,
-        skill_paths = CODING_SKILL_PATHS,
+        skill_paths = llm_skill_paths,
         type = "coding",
         other = other,
-        model_name = config.CODING_MODEL_NAME,
+        model_name = llm_model_name,
         temperature = 0
     )
     result, file_paths = coding_llm.invoke()
@@ -77,10 +94,10 @@ def generate_or_fix_code(input_raw):
     result_list[1] = "Success."
     return result_list
 
-generate_or_fix_code.name = "generate_or_fix_code"
-generate_or_fix_code.description = (
+text_related_generation.name = "text_related_generation"
+text_related_generation.description = (
     "# Must use get_prompt(raw_prompt) tool to generate the prompt parameters. #"
-    "Create a file in the specified location on the computer and write code. Or fix code in the specified location."
+    "When need text, whether code or argumentative paper, Use this tool."
     "The input is a list containing two items."
     "The first is a string containing the path of the JSON file with the prompt parameter."
     "The second is a string containing the path of the code to get fixed. If the task is to generate, leave it empty."
@@ -89,11 +106,11 @@ generate_or_fix_code.description = (
     "The second is a string contains error message, empty while no error."
     "The third is an array containing multiple items, each is the path to the code file just generated ."
 )
-generate_or_fix_code.input = {
+text_related_generation.input = {
     "json_dir": str,
     "code_dir": str
 }
-generate_or_fix_code.output = {
+text_related_generation.output = {
     "is_success": bool,
     "error_message": str,
     "file_paths": [str, str, ...],

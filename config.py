@@ -7,9 +7,6 @@ load_dotenv(".env.local", override=True)
 class config:
     ROOT_DIR = Path(__file__).resolve().parent
     SKILL_PATH = ROOT_DIR / "skills"
-    BASE_SKILL_PATH = SKILL_PATH / "BASE.md"
-    CODING_SKILL_PATH = SKILL_PATH / "CODING.md"
-    PROMPT_SKILL_PATH = SKILL_PATH / "PROMPT.md"
 
     PROMPT_PARAMS_PATH = ROOT_DIR / "prompt_params"
     FINAL_ANSWER_PATH = PROMPT_PARAMS_PATH / "final_answer.json"
@@ -27,6 +24,7 @@ class config:
     BASE_AGENT_NAME = os.getenv("BASE_AGENT_NAME")
     PROMPT_AGENT_NAME = os.getenv("PROMPT_AGENT_NAME")
     CODING_MODEL_NAME = os.getenv("CODING_MODEL_NAME")
+    TEXTING_MODEL_NAME = os.getenv("TEXTING_MODEL_NAME")
 
 if __name__ == "__main__":
     print(config.BASE_SKILL_PATH)

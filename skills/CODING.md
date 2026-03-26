@@ -64,21 +64,6 @@ After a first working version:
 1. What errors does the user encounter when executing the code? Or what functions does the user want to optimize?
 2. Fix the code according to the error messages or optimization requirements and generate the new code for this file.
 
-# Output
-The output should be a dict with multiple items, the keys should be the file names and the values should be the code content.
-
 # Preferences
 1. Notes need to be concise.
 2. Do not mark the language before the output dict.
-
-## Example
-{
-    "file_name1.py": "code1",
-    "file_name2.cpp": "code2",
-}
-
-# Final check
-Check whether the output meets the sytle, tone, audience and preferences.
-
-# Final Answer:
-A dict with file names and code contents."

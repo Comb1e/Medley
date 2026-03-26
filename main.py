@@ -15,10 +15,10 @@ BASE_REQUIRED_ENV_VARS = [
 check_env_vars(BASE_REQUIRED_ENV_VARS)
 
 BASE_SKILL_PATHS = [
-    config.BASE_SKILL_PATH
+    config.SKILL_PATH / "BASE.md"
 ]
 base_agent = agent(
-    raw_prompt = "Tell me your Memory",
+    raw_prompt = "生成一篇解释人与自然和谐共生的议论文,400字以内",
     skill_paths = BASE_SKILL_PATHS,
     type = "base",
     tools = tools,
