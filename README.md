@@ -23,6 +23,7 @@ Fill in varies under Essential
 DASHSCOPE_API_KEY=...
 ```
 4. Fill in your prompt
+
 Write your prompt in user_prompt.md
 
 5. Run
