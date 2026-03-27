@@ -10,21 +10,6 @@ from small_agents.prompt import get_prompt
 # tool list
 tools = [
     Tool(
-        name=create_folder.name,
-        func=create_folder,
-        description=create_folder.description,
-        input=create_folder.input,
-        output=create_folder.output
-    ),
-    Tool(
-        name=get_files_in_folder.name,
-        func=get_files_in_folder,
-        description=get_files_in_folder.description,
-        input=get_files_in_folder.input,
-        output=get_files_in_folder.output
-    ),
-
-    Tool(
         name=text_related_generation.name,
         func=text_related_generation,
         description=text_related_generation.description,
@@ -41,6 +26,20 @@ tools = [
 ]
 
 '''
+    Tool(
+        name=get_files_in_folder.name,
+        func=get_files_in_folder,
+        description=get_files_in_folder.description,
+        input=get_files_in_folder.input,
+        output=get_files_in_folder.output
+    ),
+    Tool(
+        name=create_folder.name,
+        func=create_folder,
+        description=create_folder.description,
+        input=create_folder.input,
+        output=create_folder.output
+    ),
     Tool(
         name=check_and_install_packages.name,
         func=check_and_install_packages,

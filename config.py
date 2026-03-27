@@ -19,6 +19,8 @@ class config:
 
     MEMORY_PATH = ROOT_DIR / "memory"
     MEMORY_LOGS_PATH = MEMORY_PATH / "logs"
+    RAW_MEMORY_PATH = MEMORY_LOGS_PATH / "raw"
+    MEMORY_VECTOR_PATH = MEMORY_LOGS_PATH / "vector"
 
     DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
 

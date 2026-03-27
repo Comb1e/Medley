@@ -5,7 +5,7 @@ from datetime import datetime
 from config import config
 
 class in_memory:
-    def __init__(self, max_history=10, logs_dir=config.MEMORY_LOGS_PATH):
+    def __init__(self, max_history=10, logs_dir=config.RAW_MEMORY_PATH):
         self.max_history = max_history
         self.logs_dir = logs_dir
         os.makedirs(logs_dir, exist_ok=True)
@@ -38,7 +38,6 @@ class in_memory:
             [f for f in os.listdir(self.logs_dir) if f.endswith(".jsonl")],
             reverse=True
         )
-
         records = []
         for filename in log_files:
             path = os.path.join(self.logs_dir, filename)
@@ -76,3 +75,7 @@ class in_memory:
             label = "User" if msg["role"] == "user" else "Assistant"
             print(f"[{label}] {msg['content'][:120]}")
         print("───────────────────────────\n")
+
+    def store(self, user_input: str, reply: str):
+        self._save_message("user", user_input)
+        self._save_message("assistant", reply)

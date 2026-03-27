@@ -8,6 +8,7 @@ from pathlib import Path
 from custom_tools.get_params import get_skills, get_agent_params
 from small_agents.prompt_template import llm_prompt_template, agent_prompt_template
 from memory.in_memory import in_memory
+from memory.vector_memory import SemanticAgent
 from config import config
 
 class llm:
@@ -43,7 +44,8 @@ class agent:
         self, type, raw_prompt, skill_paths, tools,
         enable_memory=False,
         max_history=10,
-        logs_dir=config.MEMORY_LOGS_PATH,
+        days_to_index=7,
+        logs_dir=config.RAW_MEMORY_PATH,
         model_name="qwen-plus",
         temperature=0
     ):
@@ -56,6 +58,7 @@ class agent:
 
         self.enable_memory = enable_memory
         self.max_history = max_history
+        self.days_to_index = days_to_index
         self.logs_dir = logs_dir
         self.init_memory()
 
@@ -68,17 +71,21 @@ class agent:
             self.in_memory = in_memory(
             max_history=self.max_history,
             logs_dir=self.logs_dir
-        )
+            )
+            self.vector_memory = SemanticAgent(
+                days_to_index=self.days_to_index
+            )
 
     def save_message(self, reply):
         if self.enable_memory:
-            self.in_memory._save_message("user", self.raw_prompt)
-            self.in_memory._save_message("assistant", reply)
+            self.in_memory.store(self.raw_prompt, reply)
+            self.vector_memory.store(self.raw_prompt, reply)
 
     def load_momery(self):
         if self.enable_memory:
             inMomery = ("The first few complete conversations with the user", self.in_memory.history)
-            memory = inMomery
+            relevant = (f"The most relevant conversations with the current prompt in the past {self.days_to_index} days", self.vector_memory.retrieve(self.raw_prompt, top_k=5))
+            memory = inMomery + relevant
             return memory
         else:
             return ""
