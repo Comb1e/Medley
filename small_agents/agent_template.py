@@ -43,9 +43,9 @@ class agent:
     def __init__(
         self, type, raw_prompt, skill_paths, tools,
         enable_memory=False,
-        max_history=10,
+        max_history=6,
         days_to_index=7,
-        logs_dir=config.RAW_MEMORY_PATH,
+        logs_dir=config.MEMORY_LOGS_PATH,
         model_name="qwen-plus",
         temperature=0
     ):
@@ -61,6 +61,7 @@ class agent:
         self.days_to_index = days_to_index
         self.logs_dir = logs_dir
         self.init_memory()
+        self.inMemory, self.relevant = self.load_momery()
 
         self.chat = ChatTongyi(model=model_name, temperature=0)
         self.agent = create_react_agent(self.chat, self.tools, agent_prompt_template)
@@ -83,16 +84,18 @@ class agent:
 
     def load_momery(self):
         if self.enable_memory:
-            inMomery = ("The first few complete conversations with the user", self.in_memory.history)
-            relevant = (f"The most relevant conversations with the current prompt in the past {self.days_to_index} days", self.vector_memory.retrieve(self.raw_prompt, top_k=5))
-            memory = inMomery + relevant
-            return memory
+            inMemory = self.in_memory.history
+            relevant = self.vector_memory.get_relevant(self.raw_prompt, top_k=3)
+            print(relevant)
+            return inMemory, relevant
         else:
-            return ""
+            return "None", "None"
 
     def invoke(self):
         reply = self.agent_excuator.invoke({
-            "memory": self.load_momery(),
+            "days_to_index": self.days_to_index,
+            "in_memory": self.inMemory,
+            "vector_memory": self.relevant,
             "raw_prompt": self.raw_prompt,
             "skills": self.skills,
             "task": self.task,

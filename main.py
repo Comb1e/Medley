@@ -29,7 +29,8 @@ base_agent = agent(
     temperature = 0,
 )
 
-#if __name__ == "__main__":
-    #result = base_agent.invoke()
-    #print(result)
+if __name__ == "__main__":
+    result = base_agent.invoke()
+    print(result)
+
 
