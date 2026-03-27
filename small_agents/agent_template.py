@@ -41,7 +41,7 @@ class llm:
 
 class agent:
     def __init__(
-        self, type, raw_prompt, skill_paths, tools,
+        self, type, skill_paths, tools,
         enable_memory=False,
         max_history=6,
         days_to_index=7,
@@ -49,7 +49,6 @@ class agent:
         model_name="qwen-plus",
         temperature=0
     ):
-        self.raw_prompt = raw_prompt
         self.final_answer, self.task = get_agent_params(type)
         self.skills = get_skills(skill_paths)
         self.tools = tools
@@ -61,7 +60,6 @@ class agent:
         self.days_to_index = days_to_index
         self.logs_dir = logs_dir
         self.init_memory()
-        self.inMemory, self.relevant = self.load_momery()
 
         self.chat = ChatTongyi(model=model_name, temperature=0)
         self.agent = create_react_agent(self.chat, self.tools, agent_prompt_template)
@@ -77,31 +75,31 @@ class agent:
                 days_to_index=self.days_to_index
             )
 
-    def save_message(self, reply):
+    def save_message(self, user_input, reply):
         if self.enable_memory:
-            self.in_memory.store(self.raw_prompt, reply)
-            self.vector_memory.store(self.raw_prompt, reply)
+            self.in_memory.store(user_input, reply)
+            self.vector_memory.store(user_input, reply)
 
-    def load_momery(self):
+    def load_momery(self, user_input):
         if self.enable_memory:
             inMemory = self.in_memory.history
-            relevant = self.vector_memory.get_relevant(self.raw_prompt, top_k=3)
-            print(relevant)
+            relevant = self.vector_memory.get_relevant(user_input, top_k=3)
             return inMemory, relevant
         else:
             return "None", "None"
 
-    def invoke(self):
+    def invoke(self, user_input: str):
+        self.inMemory, self.relevant = self.load_momery(user_input)
         reply = self.agent_excuator.invoke({
             "days_to_index": self.days_to_index,
             "in_memory": self.inMemory,
             "vector_memory": self.relevant,
-            "raw_prompt": self.raw_prompt,
+            "raw_prompt": user_input,
             "skills": self.skills,
             "task": self.task,
             "prompt_folder": self.prompt_folder,
             "default_generate_path": self.default_generate_path,
             "final_answer": self.final_answer,
         })["output"]
-        self.save_message(reply)
+        self.save_message(user_input, reply)
         return reply

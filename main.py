@@ -20,7 +20,6 @@ BASE_SKILL_PATHS = [
 ]
 
 base_agent = agent(
-    raw_prompt = get_user_prompt(),
     skill_paths = BASE_SKILL_PATHS,
     type = "base",
     tools = tools,
@@ -30,7 +29,12 @@ base_agent = agent(
 )
 
 if __name__ == "__main__":
-    result = base_agent.invoke()
-    print(result)
+    while True:
+        user_input = input("You: ").strip()
+        if user_input == "quit":
+            break
+        print(user_input)
+        result = base_agent.invoke(user_input)
+        print(result)
 
 

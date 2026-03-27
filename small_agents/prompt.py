@@ -18,13 +18,12 @@ PROMPT_SKILL_PATHS = [
 def get_prompt(raw_prompt):
     get_prompt_agent = agent(
         type = "prompt",
-        raw_prompt = raw_prompt,
         skill_paths = PROMPT_SKILL_PATHS,
         model_name = config.PROMPT_AGENT_NAME,
         tools = prompt_tools,
         temperature = 0
     )
-    prompt_params_path = get_prompt_agent.invoke()
+    prompt_params_path = get_prompt_agent.invoke(raw_prompt)
     return prompt_params_path
 get_prompt.name = "get_prompt"
 get_prompt.description = (
