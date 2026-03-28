@@ -3,4 +3,4 @@ name: user_prompt
 ---
 
 # User Prompt
-keil是一个怎么样的软件
+如何理解没有共产党就没有新中国

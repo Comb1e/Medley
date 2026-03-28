@@ -13,20 +13,20 @@ def create_folder(input_raw) -> list:
     try:
         input = ast.literal_eval(input_raw)
     except:
-        print(input_raw)
-        result_list[1] = "Invalid input format. Please provide a valid list of [base_dir, folder_name]."
+        print("[INPUT] " + input_raw)
+        result_list[1] = "[ERROR] Invalid input format. Please provide a valid list of [base_dir, folder_name]."
         return result_list
 
     error_msg = is_valid_windows_path_format(input[0])
     if error_msg[0] == False:
-        print(input[0])
-        result_list[1] = "Invalid folder address format. Please provide a valid Windows path.\n" + error_msg[1]
+        print("[INPUT] " + input[0])
+        result_list[1] = "[ERROR] Invalid folder address format. Please provide a valid Windows path.\n" + error_msg[1]
         return result_list
 
     error_msg = is_valid_folder_file_name(input[1])
     if error_msg[0] == False:
-        print(input[1])
-        result_list[1] = "Invalid folder name. Please provide a valid folder name that does not contain illegal characters or reserved names.\n" + error_msg[1]
+        print("[INPUT] " + input[1])
+        result_list[1] = "[ERROR] Invalid folder name. Please provide a valid folder name that does not contain illegal characters or reserved names.\n" + error_msg[1]
         return result_list
 
     base_dir = input[0]
@@ -35,12 +35,12 @@ def create_folder(input_raw) -> list:
     new_folder_path = base_path / folder_name
     if new_folder_path.exists():
         result_list[0] = True
-        result_list[1] = f"\nFolder {new_folder_path} existed, no need to create."
+        result_list[1] = f"[INFO] Folder {new_folder_path} existed, no need to create."
         return result_list
 
     new_folder_path.mkdir(parents=True, exist_ok=True)
     result_list[0] = True
-    result_list[1] = f"\nSuccessfully created folder {folder_name} in {base_dir}"
+    result_list[1] = f"[INFO] Successfully created folder {folder_name} in {base_dir}"
     return result_list
 
 create_folder.name = "create_folder"
@@ -76,7 +76,7 @@ def create_file(file_path, code_block):
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(code)
 
-    print(f"\nSuccessfully created file in {file_path}")
+    print(f"\n[INFO] Successfully created file in {file_path}")
 
 language_type = [r"python", r"java", r"css", r"c++", r"javascript", r"go", r"ruby", r"php", r"c#", r"swift", r"kotlin"]
 

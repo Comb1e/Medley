@@ -108,7 +108,7 @@ class agent:
             relevant = self.vector_memory.get_relevant(user_input, top_k=3)
             return user, inMemory, relevant
         else:
-            return "None", "None"
+            return "None", "None", "None"
 
     def save_memory_in_queue(self):
         if self.enable_memory:

@@ -31,5 +31,12 @@ Write your prompt in user_prompt.md
 python main.py
 ```
 
-6. Quit
-## Type "quit" to end the conversation.
+# Usage
+## Auit
+### Type "quit" to end the conversation.
+
+## Read
+### Type "read" to get read the prompt from user_prompt.md
+
+## Use directly
+### Type your prompt directly and press Enter

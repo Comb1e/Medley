@@ -37,29 +37,29 @@ def text_related_generation(input_raw):
     try:
         input = ast.literal_eval(input_raw)
     except:
-        print(input_raw)
-        result_list[1] = "Invalid input format. Please provide a valid list of [json_dir, code_dir]."
+        print("[input] " + input_raw)
+        result_list[1] = "[ERROR] Invalid input format. Please provide a valid list of [json_dir, code_dir]."
         return result_list
 
     error_msg = is_valid_windows_path_format(input[0])
     if error_msg[0] == False:
-        print(input_raw)
-        result_list[1] = "Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names.\n" + error_msg[1]
+        print("[input] " + input_raw)
+        result_list[1] = "[ERROR] Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names.\n" + error_msg[1]
         return result_list
     json_path = input[0]
 
     if input[1] != "":
         error_msg = is_valid_windows_path_format(input[1])
         if error_msg[0] == False:
-            print(input_raw)
-            result_list[1] = "Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names.\n" + error_msg[1]
+            print("[input] " + input_raw)
+            result_list[1] = "[ERROR] Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names.\n" + error_msg[1]
             return result_list
         code_path = input[1]
         try:
             with open(code_path, 'r', encoding='utf-8') as file:
                 other = file.read()
         except:
-            result_list[1] = "The second input is invalid."
+            result_list[1] = "[ERROR] The second input is invalid."
             return result_list
     else:
         other = ""
@@ -79,19 +79,19 @@ def text_related_generation(input_raw):
         result_dict = ast.literal_eval(result)
     except:
         print(result)
-        result_list[1] = "The prompt is inaccurate. Regenerate the prompt and use this tool."
+        result_list[1] = "[ERROR] The prompt is inaccurate. Regenerate the prompt and use this tool."
         return result_list
 
     for key in result_dict.keys():
         error_msg = is_valid_windows_path_format(str(file_paths / key))
         if error_msg[0] == False:
             print(file_paths / key)
-            result_list[1] = "The prompt is inaccurate. Regenerate the prompt and use this tool\n" + error_msg[1]
+            result_list[1] = "[ERROR] The prompt is inaccurate. Regenerate the prompt and use this tool\n" + error_msg[1]
             return result_list
         result_list[2].append(file_paths / key)
         create_file(file_paths / key, result_dict[key])
     result_list[0] = True
-    result_list[1] = "Success."
+    result_list[1] = "[INFO] Success."
     return result_list
 
 text_related_generation.name = "text_related_generation"

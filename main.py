@@ -35,6 +35,6 @@ if __name__ == "__main__":
         elif user_input == "read":
             user_input = get_user_prompt()
         result = base_agent.invoke(user_input)
-        print(result)
+        print("[ANS] " + result)
     base_agent.save_memory_in_queue()
 
