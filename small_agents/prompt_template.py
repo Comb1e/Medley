@@ -27,6 +27,9 @@ Begin!
 '''
 
 agent_template = '''
+#User habits and preferences#
+{user}
+
 #The first few complete conversations with the user#
 {in_memory}
 

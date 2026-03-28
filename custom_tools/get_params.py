@@ -4,6 +4,7 @@ from config import config
 final_answer_path = config.FINAL_ANSWER_PATH
 task_path = config.TASK_PATH
 user_prompt_path = config.USER_PROMPT_PATH
+USER_path = config.MEMORY_LOGS_PATH / "USER.md"
 
 def get_final_answer(type):
     with open(final_answer_path, "r", encoding="utf-8") as f:
@@ -32,5 +33,10 @@ def get_skills(skill_paths):
 
 def get_user_prompt():
     with open(user_prompt_path, "r", encoding="utf-8") as f:
+        user_prompt = f.read()
+    return user_prompt
+
+def get_USER():
+    with open(USER_path, "r", encoding="utf-8") as f:
         user_prompt = f.read()
     return user_prompt

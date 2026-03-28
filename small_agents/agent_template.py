@@ -1,15 +1,23 @@
-from langchain_community.chat_models import ChatTongyi  # 或 OpenAI, Ollama 等
-from langchain_core.prompts import PromptTemplate
+import os
+from langchain_openai import ChatOpenAI
 from langchain.agents import create_react_agent, AgentExecutor
 import json
 
 from pathlib import Path
 
-from custom_tools.get_params import get_skills, get_agent_params
+from custom_tools.get_params import get_skills, get_agent_params, get_USER
+from custom_tools.verification import check_env_vars
 from small_agents.prompt_template import llm_prompt_template, agent_prompt_template
-from memory.in_memory import in_memory
+from small_agents.summarize import MemorySummarizer
+from memory.in_memory import InMemory
 from memory.vector_memory import SemanticAgent
 from config import config
+
+REQUIRED_ENV_VARS = [
+    'DASHSCOPE_BASE_URL',
+    'DASHSCOPE_API_KEY',
+]
+check_env_vars(REQUIRED_ENV_VARS)
 
 class llm:
     def __init__(self, json_path, skill_paths, type, other, model_name="qwen-plus", temperature=0):
@@ -24,7 +32,12 @@ class llm:
         self.file_paths = Path(prompt_params["path"]) / prompt_params["folder_name"]
         self.other = other
 
-        self.chat = ChatTongyi(model_name=model_name, temperature=temperature)
+        self.chat = ChatOpenAI(
+            openai_api_key=config.DASHSCOPE_API_KEY,
+            base_url=config.DASHSCOPE_BASE_URL,
+            model=model_name,
+            temperature=0,
+        )
         self.prompt = llm_prompt_template.format(**{
             "background": self.backgournd,
             "purpose": self.purpose,
@@ -43,7 +56,7 @@ class agent:
     def __init__(
         self, type, skill_paths, tools,
         enable_memory=False,
-        max_history=6,
+        max_history=10,
         days_to_index=7,
         logs_dir=config.MEMORY_LOGS_PATH,
         model_name="qwen-plus",
@@ -61,15 +74,22 @@ class agent:
         self.logs_dir = logs_dir
         self.init_memory()
 
-        self.chat = ChatTongyi(model=model_name, temperature=0)
+        self.chat = ChatOpenAI(
+            openai_api_key=config.DASHSCOPE_API_KEY,
+            base_url=config.DASHSCOPE_BASE_URL,
+            model=model_name,
+            temperature=0,
+        )
         self.agent = create_react_agent(self.chat, self.tools, agent_prompt_template)
         self.agent_excuator = AgentExecutor(agent=self.agent, tools=self.tools, verbose=True, handle_parsing_errors=True)
 
     def init_memory(self):
         if self.enable_memory:
-            self.in_memory = in_memory(
-            max_history=self.max_history,
-            logs_dir=self.logs_dir
+            self.summarizer = MemorySummarizer()
+            self.summarizer.run()
+            self.in_memory = InMemory(
+                max_history=self.max_history,
+                logs_dir=self.logs_dir
             )
             self.vector_memory = SemanticAgent(
                 days_to_index=self.days_to_index
@@ -78,19 +98,26 @@ class agent:
     def save_message(self, user_input, reply):
         if self.enable_memory:
             self.in_memory.store(user_input, reply)
+            self.in_memory.flush_session_history()
             self.vector_memory.store(user_input, reply)
 
-    def load_momery(self, user_input):
+    def load_memory(self, user_input):
         if self.enable_memory:
-            inMemory = self.in_memory.history
+            user = get_USER()
+            inMemory = self.in_memory.get_session_history()
             relevant = self.vector_memory.get_relevant(user_input, top_k=3)
-            return inMemory, relevant
+            return user, inMemory, relevant
         else:
             return "None", "None"
 
+    def save_memory_in_queue(self):
+        if self.enable_memory:
+            self.in_memory.flush_all_memories()
+
     def invoke(self, user_input: str):
-        self.inMemory, self.relevant = self.load_momery(user_input)
+        self.user, self.inMemory, self.relevant = self.load_memory(user_input)
         reply = self.agent_excuator.invoke({
+            "user": self.user,
             "days_to_index": self.days_to_index,
             "in_memory": self.inMemory,
             "vector_memory": self.relevant,

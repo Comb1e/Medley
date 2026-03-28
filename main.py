@@ -10,7 +10,6 @@ from custom_tools.get_params import get_user_prompt
 from small_agents.agent_template import agent
 
 BASE_REQUIRED_ENV_VARS = [
-    'DASHSCOPE_API_KEY',
     'BASE_AGENT_NAME',
 ]
 check_env_vars(BASE_REQUIRED_ENV_VARS)
@@ -33,8 +32,9 @@ if __name__ == "__main__":
         user_input = input("You: ").strip()
         if user_input == "quit":
             break
-        print(user_input)
+        elif user_input == "read":
+            user_input = get_user_prompt()
         result = base_agent.invoke(user_input)
         print(result)
-
+    base_agent.save_memory_in_queue()
 

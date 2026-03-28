@@ -21,11 +21,13 @@ class config:
     MEMORY_LOGS_PATH = MEMORY_PATH / "logs"
 
     DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
+    DASHSCOPE_BASE_URL = os.getenv("DASHSCOPE_BASE_URL")
 
     BASE_AGENT_NAME = os.getenv("BASE_AGENT_NAME")
     PROMPT_AGENT_NAME = os.getenv("PROMPT_AGENT_NAME")
     CODING_MODEL_NAME = os.getenv("CODING_MODEL_NAME")
     TEXTING_MODEL_NAME = os.getenv("TEXTING_MODEL_NAME")
+    SUMMARIZING_MODEL_NAME = os.getenv("SUMMARIZING_MODEL_NAME")
 
 if __name__ == "__main__":
     print(config.BASE_SKILL_PATH)

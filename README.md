@@ -30,3 +30,6 @@ Write your prompt in user_prompt.md
 ```powershell
 python main.py
 ```
+
+6. Quit
+## Type "quit" to end the conversation.
