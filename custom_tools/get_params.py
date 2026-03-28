@@ -1,10 +1,39 @@
 import json
+from datetime import datetime
+
 from config import config
 
 final_answer_path = config.FINAL_ANSWER_PATH
 task_path = config.TASK_PATH
 user_prompt_path = config.USER_PROMPT_PATH
-USER_path = config.MEMORY_LOGS_PATH / "USER.md"
+USER_path = config.MEMORY_PATH / "USER.md"
+required_skill_path = config.SKILL_PATH
+
+skill_keys = ["memory"]
+
+def get_skill(skill_type) -> str:
+    path = required_skill_path
+    if skill_type == "memory":
+        path = path / "MEMORY"
+    else:
+        return "None"
+    path = path / "SKILL.md"
+    with open(path, "r", encoding="utf-8") as f:
+        skill = f.read()
+    print("\n") # Make terminal more readable
+    return skill
+get_skill.name = "get_skill"
+get_skill.description = (
+    "Get the required skill."
+    f"The input is a string. Only value in {skill_keys} is available"
+    "The output is the skill to read"
+)
+get_skill.input = {
+    "skill_type": str,
+}
+get_skill.output = {
+    "skill": str
+}
 
 def get_final_answer(type):
     with open(final_answer_path, "r", encoding="utf-8") as f:
@@ -40,3 +69,6 @@ def get_USER():
     with open(USER_path, "r", encoding="utf-8") as f:
         user_prompt = f.read()
     return user_prompt
+
+def get_date_by_today():
+    return datetime.now().isoformat()

@@ -45,5 +45,5 @@ Type "read" to get read the prompt from user_prompt.md
 Type your prompt directly and press Enter
 
 # Feature
-1. The content of each conversation will be stored in the memory/logs folder by date. Before the first conversation starts each day, the previous conversation content will be summarized as user habits and hobbies to help the agent better understand user needsThe content of each conversation will be stored in the memory/logs folder by date. Before the first conversation starts each day, the previous conversation content will be summarized as user habits and hobbies to help the agent better understand user needs. You can view the information summarized by the agent in memory/logs/USER.md and memory/logs/year-month-day/user.md.
+1. The content of each conversation will be stored in the logs/memory folder by date. Before the first conversation starts each day, the previous conversation content will be summarized as user habits and hobbies to help the agent better understand user needs. You can view the information summarized by the agent in logs/memory/logs/USER.md and logs/memory/year-month-day/user.md.
 2. Use all-MiniLM-L6-v2 to find similar conversations from the past seven days.

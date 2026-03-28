@@ -16,9 +16,7 @@ class config:
     LOG_PATH = ROOT_DIR / "logs"
     PROMPT_PATH = LOG_PATH / "prompts"
     GENERATE_PATH = LOG_PATH / "generated_files"
-
-    MEMORY_PATH = ROOT_DIR / "memory"
-    MEMORY_LOGS_PATH = MEMORY_PATH / "logs"
+    MEMORY_PATH = LOG_PATH / "memory"
 
     DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
     DASHSCOPE_BASE_URL = os.getenv("DASHSCOPE_BASE_URL")
@@ -28,6 +26,7 @@ class config:
     CODING_MODEL_NAME = os.getenv("CODING_MODEL_NAME")
     TEXTING_MODEL_NAME = os.getenv("TEXTING_MODEL_NAME")
     SUMMARIZING_MODEL_NAME = os.getenv("SUMMARIZING_MODEL_NAME")
+    EMBEDDINGS_MODEL_NAME =  os.getenv("EMBEDDINGS_MODEL_NAME")
 
 if __name__ == "__main__":
     print(config.BASE_SKILL_PATH)

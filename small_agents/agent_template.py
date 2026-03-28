@@ -5,12 +5,10 @@ import json
 
 from pathlib import Path
 
-from custom_tools.get_params import get_skills, get_agent_params, get_USER
+from custom_tools.get_params import get_skills, get_agent_params, get_USER, get_date_by_today
 from custom_tools.verification import check_env_vars
 from small_agents.prompt_template import llm_prompt_template, agent_prompt_template
-from small_agents.summarize import MemorySummarizer
-from memory.in_memory import InMemory
-from memory.vector_memory import SemanticAgent
+from small_agents.in_memory import InMemory
 from config import config
 
 REQUIRED_ENV_VARS = [
@@ -55,10 +53,8 @@ class llm:
 class agent:
     def __init__(
         self, type, skill_paths, tools,
-        enable_memory=False,
         max_history=10,
-        days_to_index=7,
-        logs_dir=config.MEMORY_LOGS_PATH,
+        logs_dir=config.MEMORY_PATH,
         model_name="qwen-plus",
         temperature=0
     ):
@@ -68,9 +64,7 @@ class agent:
         self.prompt_folder = config.PROMPT_PATH
         self.default_generate_path = config.GENERATE_PATH
 
-        self.enable_memory = enable_memory
         self.max_history = max_history
-        self.days_to_index = days_to_index
         self.logs_dir = logs_dir
         self.init_memory()
 
@@ -84,43 +78,29 @@ class agent:
         self.agent_excuator = AgentExecutor(agent=self.agent, tools=self.tools, verbose=True, handle_parsing_errors=True)
 
     def init_memory(self):
-        if self.enable_memory:
-            self.summarizer = MemorySummarizer()
-            self.summarizer.run()
-            self.in_memory = InMemory(
-                max_history=self.max_history,
-                logs_dir=self.logs_dir
-            )
-            self.vector_memory = SemanticAgent(
-                days_to_index=self.days_to_index
-            )
+        self.in_memory = InMemory(
+            max_history=self.max_history,
+            logs_dir=self.logs_dir
+        )
 
     def save_message(self, user_input, reply):
-        if self.enable_memory:
-            self.in_memory.store(user_input, reply)
-            self.in_memory.flush_session_history()
-            self.vector_memory.store(user_input, reply)
+        self.in_memory.store(user_input, reply)
+        self.in_memory.flush_session_history()
 
     def load_memory(self, user_input):
-        if self.enable_memory:
-            user = get_USER()
-            inMemory = self.in_memory.get_session_history()
-            relevant = self.vector_memory.get_relevant(user_input, top_k=3)
-            return user, inMemory, relevant
-        else:
-            return "None", "None", "None"
+        user = get_USER()
+        inMemory = self.in_memory.get_session_history()
+        return user, inMemory
 
     def save_memory_in_queue(self):
-        if self.enable_memory:
-            self.in_memory.flush_all_memories()
+        self.in_memory.flush_all_memories()
 
     def invoke(self, user_input: str):
-        self.user, self.inMemory, self.relevant = self.load_memory(user_input)
+        self.user, self.inMemory = self.load_memory(user_input)
         reply = self.agent_excuator.invoke({
             "user": self.user,
-            "days_to_index": self.days_to_index,
+            "date": get_date_by_today(),
             "in_memory": self.inMemory,
-            "vector_memory": self.relevant,
             "raw_prompt": user_input,
             "skills": self.skills,
             "task": self.task,

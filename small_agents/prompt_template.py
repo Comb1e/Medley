@@ -30,11 +30,11 @@ agent_template = '''
 #User habits and preferences#
 {user}
 
+#Date#
+Today is {date}
+
 #The first few complete conversations with the user#
 {in_memory}
-
-#The most relevant conversations with the current prompt in the past {days_to_index} days#
-{vector_memory}
 
 #Raw Prompt#
 {raw_prompt}

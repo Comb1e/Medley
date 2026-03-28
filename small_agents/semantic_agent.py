@@ -4,13 +4,20 @@ import numpy as np
 import anthropic
 from datetime import datetime, timedelta
 from sentence_transformers import SentenceTransformer
+
 from config import config
+from custom_tools.verification import check_env_vars
+
+VECTOR_MEMORY_REQUIRED_ENV_VARS = [
+    "EMBEDDINGS_MODEL_NAME"
+]
+check_env_vars(VECTOR_MEMORY_REQUIRED_ENV_VARS)
 
 class VectorMemory:
-    def __init__(self, logs_dir=config.MEMORY_LOGS_PATH, days_to_index=7):
+    def __init__(self, need_index, logs_dir=config.MEMORY_PATH, days_to_index=7):
         self.logs_dir = logs_dir
         self.days_to_index = days_to_index
-        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+        self.model = SentenceTransformer(config.EMBEDDINGS_MODEL_NAME)
 
         # In-memory index populated from the last 7 days on startup
         self.memories: list[str] = []
@@ -19,7 +26,9 @@ class VectorMemory:
         self.memory_conv_ids: list[int] = []   # ← conversation index per memory
         self.current_conv_id: int = 0          # ← incremented on each store() pair
 
-        self._index_recent_days()
+        self.need_index = need_index
+        if self.need_index:
+            self._index_recent_days()
 
     # ── Path helpers ───────────────────────────────────────────────────────────
 
@@ -233,8 +242,8 @@ class VectorMemory:
         if not self.memories:
             return []
 
-        # Exclude memories belonging to the last 3 conversations
-        recency_cutoff = self.current_conv_id - 3
+        # Exclude memories belonging to the last 0 conversations
+        recency_cutoff = self.current_conv_id
 
         query_vec = self.model.encode(query)
         matrix = np.vstack(self.embeddings)            # (N, D)
@@ -258,8 +267,8 @@ class VectorMemory:
 
 
 class SemanticAgent:
-    def __init__(self, days_to_index=7):
-        self.memory = VectorMemory(days_to_index=days_to_index)
+    def __init__(self, need_index, days_to_index=7):
+        self.memory = VectorMemory(need_index=need_index, days_to_index=days_to_index)
 
     def get_relevant(self, user_input: str, top_k: int = 3):
         return self.memory.retrieve(user_input, top_k)

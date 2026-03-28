@@ -137,6 +137,14 @@ def _entries_to_text(entries: list[dict]) -> str:
 # Main class
 # ---------------------------------------------------------------------------
 
+def check_today(logs_dir=config.MEMORY_PATH):
+    today_folder = logs_dir / _today().strftime(DATE_FMT)
+    if today_folder.is_dir():
+        print(f"[INFO] Today's memory already exists: {today_folder}")
+        print("[INFO] No back-fill needed.")
+        return False
+    return True
+
 class MemorySummarizer:
     """
     Summarises raw_memories.jsonl files using an LLM and maintains a
@@ -156,13 +164,18 @@ class MemorySummarizer:
 
     def __init__(
         self,
-        logs_dir = config.MEMORY_LOGS_PATH,
+        logs_dir = config.MEMORY_PATH,
         lookback_days: int = 30,
         model: str = MODEL,
     ) -> None:
         self.logs_dir = logs_dir
         if not self.logs_dir.is_dir():
             raise FileNotFoundError(f"logs_dir does not exist: {self.logs_dir}")
+        if check_today(logs_dir):
+            self.need = False
+            return
+        else:
+            self.need = True
         self.lookback_days = lookback_days
         self.model = model
         self.chat = ChatOpenAI(
@@ -186,14 +199,11 @@ class MemorySummarizer:
         3. Generate a daily user.md summary for each such folder.
         4. Merge all newly created user.md files into the global USER.md.
         """
-        today_folder = self.logs_dir / _today().strftime(DATE_FMT)
-
-        if today_folder.is_dir():
-            print(f"[INFO] Today's folder already exists: {today_folder}")
-            print("[INFO] No back-fill needed.")
+        if self.need == False:
             return
 
-        print(f"[INFO] Today's folder '{today_folder.name}' not found.")
+        today_folder = self.logs_dir / _today().strftime(DATE_FMT)
+        print(f"[INFO] Today's memory '{today_folder.name}' not found.")
         print(f"[INFO] Scanning the previous {self.lookback_days} days …")
 
         past_folders = _date_folders(self.logs_dir, self.lookback_days)

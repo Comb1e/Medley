@@ -8,6 +8,7 @@ from custom_tools.run_code import check_and_install_packages, execute_python_cod
 from custom_tools.get_params import get_user_prompt
 
 from small_agents.agent_template import agent
+from small_agents.summarize import MemorySummarizer
 
 BASE_REQUIRED_ENV_VARS = [
     'BASE_AGENT_NAME',
@@ -18,16 +19,16 @@ BASE_SKILL_PATHS = [
     config.SKILL_PATH / "BASE.md"
 ]
 
-base_agent = agent(
-    skill_paths = BASE_SKILL_PATHS,
-    type = "base",
-    tools = tools,
-    enable_memory = True,
-    model_name = config.BASE_AGENT_NAME,
-    temperature = 0,
-)
-
 if __name__ == "__main__":
+    summarizer = MemorySummarizer()
+    summarizer.run()
+    base_agent = agent(
+        skill_paths = BASE_SKILL_PATHS,
+        type = "base",
+        tools = tools,
+        model_name = config.BASE_AGENT_NAME,
+        temperature = 0,
+    )
     while True:
         user_input = input("You: ").strip()
         if user_input == "quit":
