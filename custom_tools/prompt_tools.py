@@ -1,4 +1,4 @@
-from langchain.tools import Tool
+from langchain_core.tools import Tool
 from custom_tools.generate_prompt_params import generate_prompt_params
 from custom_tools.get_code import get_files_in_folder
 

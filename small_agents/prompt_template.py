@@ -30,41 +30,37 @@ agent_template = '''
 #User habits and preferences#
 {user}
 
+#Iteration#
+{iteration}
+Inform the user you need more iteration if the task cannot get completed in this iteration but teration reaches {max_iteration}.
+
 #Date#
 Today is {date}
 
 #The first few complete conversations with the user#
 {in_memory}
 
-#Raw Prompt#
-{raw_prompt}
-
-#Tools#
-The following tools are available：
-{tools}
-
-#Task#
-{task}
-
 #Skills#
 {skills}
 
+#Tool callings#
+{tool_callings}
+
 #Main distinctions#
-1. The tool "get_files_in_folder" should be use to check the folder {prompt_folder}
-2. The parameter "path" should be the path indicated by the user in #Raw Prompt#. If the user did not indicate one, it should be {default_generate_path}.
+{main_distinctions}
 
 #Task Steps#
 Think and act in the following format:
 
+Observation: If there was tool calling. Observe results returned by the tool.
 Thought: Do I need tools? Why?
-Action: Tool name to use (must be one of {tool_names}).
+Action: Tool name to use.
 Action Input: Input parameters of the tool.
-Observation: Results returned by the tool.
-... (repeatable five times, output the number of attempts when starting a new attempt)
-Final check: Check whether the output meets the examples.
-Final Answer: {final_answer}
 
-Thought: {agent_scratchpad}
+If the whole task is complete, Do the following steps. If just call one tool and need further calling, do not do these steps.
+
+Final check: Check whether the output meets the examples.
+Final Answer:
 '''
 
 llm_prompt_template = PromptTemplate.from_template(llm_template)

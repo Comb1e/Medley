@@ -1,4 +1,11 @@
+python>=3.11
+numpy
 langchain
 langchain_openai
+langchain-community
+langchain-pinecone
+pinecone-client
+chromadb
 python-dotenv
 sentence_transformers
+typing

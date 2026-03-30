@@ -1,4 +1,4 @@
-from langchain.tools import Tool
+from langchain_core.tools import Tool
 from custom_tools.create_proj import create_folder
 from custom_tools.run_code import check_and_install_packages, execute_python_code
 from custom_tools.get_code import get_code, get_files_in_folder

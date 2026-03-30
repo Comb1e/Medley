@@ -13,17 +13,7 @@ language_suffixs = {
     r".json": "json"
 }
 
-def get_files_in_folder(input_raw):
-    try:
-        input = ast.literal_eval(input_raw)
-    except:
-        print(input_raw)
-        raise ValueError("Invalid input format. Please provide a valid list of [base_dir].")
-
-    if is_valid_windows_path_format(input[0]) == False:
-        print(input[0])
-        raise ValueError("Invalid folder address format. Please provide a valid Windows path.")
-
+def get_files_in_folder(input):
     base_dir = Path(input[0])
 
     # 获取所有文件名（仅文件，不含子目录）

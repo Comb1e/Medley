@@ -2,16 +2,15 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 
+os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+
 load_dotenv(".env.local", override=True)
 
 class config:
     ROOT_DIR = Path(__file__).resolve().parent
     SKILL_PATH = ROOT_DIR / "skills"
     USER_PROMPT_PATH = ROOT_DIR / "user_prompt.md"
-
-    PROMPT_PARAMS_PATH = ROOT_DIR / "prompt_params"
-    FINAL_ANSWER_PATH = PROMPT_PARAMS_PATH / "final_answer.json"
-    TASK_PATH = PROMPT_PARAMS_PATH / "task.json"
 
     LOG_PATH = ROOT_DIR / "logs"
     PROMPT_PATH = LOG_PATH / "prompts"
@@ -26,6 +25,7 @@ class config:
     CODING_MODEL_NAME = os.getenv("CODING_MODEL_NAME")
     TEXTING_MODEL_NAME = os.getenv("TEXTING_MODEL_NAME")
     SUMMARIZING_MODEL_NAME = os.getenv("SUMMARIZING_MODEL_NAME")
+
     EMBEDDINGS_MODEL_NAME =  os.getenv("EMBEDDINGS_MODEL_NAME")
 
 if __name__ == "__main__":

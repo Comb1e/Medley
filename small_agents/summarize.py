@@ -140,10 +140,10 @@ def _entries_to_text(entries: list[dict]) -> str:
 def check_today(logs_dir=config.MEMORY_PATH):
     today_folder = logs_dir / _today().strftime(DATE_FMT)
     if today_folder.is_dir():
-        print(f"[INFO] Today's memory already exists: {today_folder}")
+        print(f"[INFO] Today's folder already exists: {today_folder}")
         print("[INFO] No back-fill needed.")
-        return False
-    return True
+        return True
+    return False
 
 class MemorySummarizer:
     """
@@ -165,7 +165,7 @@ class MemorySummarizer:
     def __init__(
         self,
         logs_dir = config.MEMORY_PATH,
-        lookback_days: int = 30,
+        lookback_days: int = 14,
         model: str = MODEL,
     ) -> None:
         self.logs_dir = logs_dir
@@ -202,8 +202,6 @@ class MemorySummarizer:
         if self.need == False:
             return
 
-        today_folder = self.logs_dir / _today().strftime(DATE_FMT)
-        print(f"[INFO] Today's memory '{today_folder.name}' not found.")
         print(f"[INFO] Scanning the previous {self.lookback_days} days …")
 
         past_folders = _date_folders(self.logs_dir, self.lookback_days)

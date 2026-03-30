@@ -26,6 +26,7 @@ if __name__ == "__main__":
         skill_paths = BASE_SKILL_PATHS,
         type = "base",
         tools = tools,
+        enable_memory=True,
         model_name = config.BASE_AGENT_NAME,
         temperature = 0,
     )
@@ -35,7 +36,7 @@ if __name__ == "__main__":
             break
         elif user_input == "read":
             user_input = get_user_prompt()
-        result = base_agent.invoke(user_input)
-        print("[ANS] " + result)
+        final_answer = base_agent.invoke(user_input)
+        print("[ANS] " + final_answer)
     base_agent.save_memory_in_queue()
 

@@ -1,10 +1,10 @@
 import json
+import re
 from datetime import datetime
+from langchain_core.messages import AIMessage
 
 from config import config
 
-final_answer_path = config.FINAL_ANSWER_PATH
-task_path = config.TASK_PATH
 user_prompt_path = config.USER_PROMPT_PATH
 USER_path = config.MEMORY_PATH / "USER.md"
 required_skill_path = config.SKILL_PATH
@@ -12,6 +12,8 @@ required_skill_path = config.SKILL_PATH
 skill_keys = ["memory"]
 
 def get_skill(skill_type) -> str:
+    skill_type = skill_type[0]
+
     path = required_skill_path
     if skill_type == "memory":
         path = path / "MEMORY"
@@ -34,19 +36,6 @@ get_skill.input = {
 get_skill.output = {
     "skill": str
 }
-
-def get_final_answer(type):
-    with open(final_answer_path, "r", encoding="utf-8") as f:
-        final_answer = json.load(f)
-    return final_answer[type]
-
-def get_task(type):
-    with open(task_path, "r", encoding="utf-8") as f:
-        task = json.load(f)
-    return task[type]
-
-def get_agent_params(type):
-    return get_final_answer(type), get_task(type)
 
 def get_agent_template_params(json_path):
     with open(json_path, "r", encoding="utf-8") as f:
@@ -72,3 +61,55 @@ def get_USER():
 
 def get_date_by_today():
     return datetime.now().isoformat()
+
+def get_action(msg):
+    action_pattern = r"Action:\s*(.*?)\s*\n"
+    action_match = re.search(action_pattern, msg)
+    if action_match:
+        action = action_match.group(1)
+    else:
+        action = "None"
+
+    input_pattern = r"```(?:json)?\s*(\{[\s\S]*?\})\s*```"
+    input_match = re.search(input_pattern, msg)
+    if input_match:
+        action_input_str = input_match.group(1)
+        print("-"*50)
+        print(action_input_str)
+        print("-"*50)
+        input_dict = json.loads(action_input_str)
+        input_list = list(input_dict.values())
+    else:
+        input_list = None
+    return action, input_list
+
+def try_getting_final_answer(msg):
+    final_pattern = r"Final Answer:\s*(.*)"
+    match = re.search(final_pattern, msg, re.DOTALL)
+
+    if match:
+        final_answer = match.group(1).strip()  # 提取并去除首尾多余空白
+        return final_answer
+    else:
+        return "[INFO] Continue."
+
+def get_content_and_metadata(reply):
+    for msg in reply['messages']:
+        # 判断是否为 AIMessage 对象
+        if isinstance(msg, AIMessage) or type(msg).__name__ == 'AIMessage':
+            content = msg.content
+            usage_metadata = msg.usage_metadata
+            break
+    if content == "":
+        print(reply)
+        print("[WARN] No content.")
+    if usage_metadata == "":
+        print("[WARN] No usage_metadata.")
+    return content, usage_metadata
+
+def print_used_tokens(token_dict):
+    input_tokens = token_dict["input_tokens"]
+    output_tokens = token_dict["output_tokens"]
+    total_tokens = token_dict["total_tokens"]
+    token_str = f"Input Tokens: {input_tokens}, Output Tokens: {output_tokens}, Total Tokens: {total_tokens}"
+    print(token_str)

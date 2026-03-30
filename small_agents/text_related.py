@@ -32,26 +32,14 @@ def get_llm_params(json_path):
         return TEXTING_SKILL_PATHS, config.TEXTING_MODEL_NAME
 
 # ====== LLM =====
-def text_related_generation(input_raw):
+def text_related_generation(input):
     result_list = [False, "", []]
-    try:
-        input = ast.literal_eval(input_raw)
-    except:
-        print("[input] " + input_raw)
-        result_list[1] = "[ERROR] Invalid input format. Please provide a valid list of [json_dir, code_dir]."
-        return result_list
-
-    error_msg = is_valid_windows_path_format(input[0])
-    if error_msg[0] == False:
-        print("[input] " + input_raw)
-        result_list[1] = "[ERROR] Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names.\n" + error_msg[1]
-        return result_list
     json_path = input[0]
 
     if input[1] != "":
         error_msg = is_valid_windows_path_format(input[1])
         if error_msg[0] == False:
-            print("[input] " + input_raw)
+            print("[input] " + input)
             result_list[1] = "[ERROR] Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names.\n" + error_msg[1]
             return result_list
         code_path = input[1]
@@ -96,7 +84,6 @@ def text_related_generation(input_raw):
 
 text_related_generation.name = "text_related_generation"
 text_related_generation.description = (
-    "# Must use get_prompt(raw_prompt) tool to generate the prompt parameters. #"
     "When need text, whether code or argumentative paper, Use this tool."
     "The input is a list containing two items."
     "The first is a string containing the path of the JSON file with the prompt parameter."
@@ -106,12 +93,13 @@ text_related_generation.description = (
     "The second is a string contains error message, empty while no error."
     "The third is an array containing multiple items, each is the path to the code file just generated ."
 )
-text_related_generation.input = {
-    "json_dir": str,
-    "code_dir": str
-}
-text_related_generation.output = {
-    "is_success": bool,
-    "error_message": str,
-    "file_paths": [str, str, ...],
-}
+text_related_generation.input = [
+    "json_dir",
+    "code_dir"
+]
+
+text_related_generation.output = [
+    "is_success",
+    "error_message",
+    "file_paths",
+]

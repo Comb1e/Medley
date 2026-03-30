@@ -5,12 +5,10 @@ from typing import List, Dict, Any
 from config import config
 from small_agents.semantic_agent import SemanticAgent
 
-def parse_dates(date_string: str) -> List[datetime]:
+def parse_dates(date_string: list) -> List[datetime]:
     """
-    Parse a string containing dates separated by commas into a list of datetime objects.
-
     Args:
-        date_string (str): Comma-separated string of dates in format 'YYYY-MM-DD'
+        date_string (list): Comma-separated string of dates in format 'YYYY-MM-DD'
 
     Returns:
         List[datetime]: List of parsed datetime objects
@@ -18,13 +16,7 @@ def parse_dates(date_string: str) -> List[datetime]:
     Raises:
         ValueError: If any date in the string is invalid
     """
-    if not date_string.strip():
-        return []
-
-    dates = []
-    translation_table = str.maketrans('', '', '"[]')
-    date_string = date_string.translate(translation_table)
-    for date_str in date_string.split(','):
+    for date_str in date_string:
         date_str = date_str.strip()
         try:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
@@ -84,6 +76,7 @@ load_memories_from_dates.name = "load_memories_from_dates"
 load_memories_from_dates.description = "#Must Use get_skill(memory) before deciding to call this tool.#"
 
 def get_relevant_memory(user_input):
+    user_input = user_input[0]
     agent = SemanticAgent(need_index=True, days_to_index=7)
     relevant_memory = agent.get_relevant(user_input, top_k=3)
     return f"The relevant conversations in the past seven days are as follows {relevant_memory}"
