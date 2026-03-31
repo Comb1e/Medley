@@ -47,3 +47,4 @@ Type your prompt directly and press Enter
 # Feature
 1. The content of each conversation will be stored in the logs/memory folder by date. Before the first conversation starts each day, the previous conversation content will be summarized as user habits and hobbies to help the agent better understand user needs. You can view the information summarized by the agent in logs/memory/logs/USER.md and logs/memory/year-month-day/user.md.
 2. Use all-MiniLM-L6-v2 to find similar conversations from the past seven days.
+3. The tool inputs provided by the agent are all JSON style strings, which are processed into lists and passed into the function.

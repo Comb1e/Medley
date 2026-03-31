@@ -84,6 +84,7 @@ Your task:
    ## Behavioural Preferences
    ## Recurring Activities & Interests
    ## Notable Patterns
+6. Compress information as much as possible while retaining facts, within 3000 words.
 
 Existing USER.md:
 {existing_profile}

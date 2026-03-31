@@ -5,10 +5,10 @@ from typing import List, Dict, Any
 from config import config
 from small_agents.semantic_agent import SemanticAgent
 
-def parse_dates(date_string: list) -> List[datetime]:
+def parse_dates(date_list: list) -> List[datetime]:
     """
     Args:
-        date_string (list): Comma-separated string of dates in format 'YYYY-MM-DD'
+        date_list (list): Comma-separated string of dates in format 'YYYY-MM-DD'
 
     Returns:
         List[datetime]: List of parsed datetime objects
@@ -16,22 +16,22 @@ def parse_dates(date_string: list) -> List[datetime]:
     Raises:
         ValueError: If any date in the string is invalid
     """
-    for date_str in date_string:
+    dates = []
+    for date_str in date_list:
         date_str = date_str.strip()
         try:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
             dates.append(date_obj)
         except ValueError:
             raise ValueError(f"Invalid date format: {date_str}. Expected format: YYYY-MM-DD")
-
     return dates
 
-def load_memories_from_dates(date_string: str) -> List[Dict[str, Any]]:
+def load_memories_from_dates(date_list_list: list) -> List[Dict[str, Any]]:
     """
     Load raw memories from specified date folders.
 
     Args:
-        date_string (str): Comma-separated string of dates in format 'YYYY-MM-DD'
+        date_list (list): Comma-separated string of dates in format 'YYYY-MM-DD'
         base_path (str): Base directory path where date folders are located
 
     Returns:
@@ -42,7 +42,7 @@ def load_memories_from_dates(date_string: str) -> List[Dict[str, Any]]:
         IOError: If there's an issue reading JSONL files
     """
     # Parse dates from string
-    dates = parse_dates(date_string)
+    dates = parse_dates(date_list_list[0])
 
     # Validate that all folders exist
     base_path = config.MEMORY_PATH

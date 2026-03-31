@@ -19,7 +19,15 @@ key: memory
 
 ## How to get skills
 Tool: get_skill
-You can use the "key" in the skills as input to call the get_skill tool to read the skills. For example: get_skill("memory")
+- Description: You can use the "key" in the Skills as input to call the get_skill tool to read the skills. Only "memory" available.
+- Input key0: key
+- Input value0: key_value.
+### Example
+```json
+{
+    "key": "memory"
+}
+```
 
 # Task steps
 1. Determine if you need skills. If yes, call the get_skill to read it.
@@ -27,7 +35,7 @@ You can use the "key" in the skills as input to call the get_skill tool to read 
 3. If the promblem is complex, use get_prompt and text_related_generation to complete it.
 
 # Tools information
-Attention: For all the tools, the input should be a JSON code block in markdown format.
+Attention: For all the tools, the input and output should be a JSON code block in markdown format.
 
 ## text_related_generation
 - Attention: Must use get_prompt(raw_prompt) tool to generate the prompt parameters before use this tool. Use this when you need to generate or fix code. When fixing code, once can only fix one file. If the task is to fix code, the second input should be left empty like "".
