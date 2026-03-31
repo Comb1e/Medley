@@ -74,9 +74,6 @@ def get_action(msg):
     input_match = re.search(input_pattern, msg)
     if input_match:
         action_input_str = input_match.group(1)
-        print("-"*50)
-        print(action_input_str)
-        print("-"*50)
         input_dict = json.loads(action_input_str)
         input_list = list(input_dict.values())
     else:
@@ -94,12 +91,8 @@ def try_getting_final_answer(msg):
         return "[INFO] Continue."
 
 def get_content_and_metadata(reply):
-    for msg in reply['messages']:
-        # 判断是否为 AIMessage 对象
-        if isinstance(msg, AIMessage) or type(msg).__name__ == 'AIMessage':
-            content = msg.content
-            usage_metadata = msg.usage_metadata
-            break
+    content = reply.content
+    usage_metadata = reply.usage_metadata
     if content == "":
         print(reply)
         print("[WARN] No content.")

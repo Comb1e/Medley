@@ -79,7 +79,6 @@ class agent:
             model=model_name,
             temperature=0,
         )
-        self.agent = None
 
     def init_memory(self):
         if self.enable_memory:
@@ -131,10 +130,11 @@ class agent:
         self.user, self.inMemory = self.load_memory(user_input)
 
         for i in range(self.max_iteration):
-            print(self.tool_callings)
             self.prompt = agent_prompt_template.format(**{
+                "raw_prompt": user_input,
                 "user": self.user,
                 "iteration": i,
+                "default_prompt_folder": config.PROMPT_PATH,
                 "max_iteration": self.max_iteration,
                 "main_distinctions": self.main_distinctions,
                 "date": get_date_by_today(),
@@ -142,11 +142,7 @@ class agent:
                 "skills": self.skills,
                 "tool_callings": self.tool_callings,
             })
-            self.agent = create_agent(
-                model=self.chat,
-                system_prompt=self.prompt
-            )
-            reply = self.agent.invoke({"messages": [{"role": "user", "content": user_input}]})
+            reply = self.chat.invoke(self.prompt)
             content, metadata = get_content_and_metadata(reply)
             print_used_tokens(metadata)
             self.reply += content

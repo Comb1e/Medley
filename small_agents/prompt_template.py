@@ -27,6 +27,9 @@ Begin!
 '''
 
 agent_template = '''
+#Raw Prompt#
+{raw_prompt}
+
 #User habits and preferences#
 {user}
 
@@ -44,12 +47,17 @@ Today is {date}
 {skills}
 
 #Tool callings#
+Records of previous tool calls:
 {tool_callings}
 
 #Main distinctions#
 {main_distinctions}
 
-#Task Steps#
+#Default Prompt Folder#
+All the prompt need should be generated and read in:
+{default_prompt_folder}
+
+#How to Work#
 Think and act in the following format:
 
 Observation: If there was tool calling. Observe results returned by the tool.

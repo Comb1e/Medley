@@ -7,6 +7,8 @@ os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
 load_dotenv(".env.local", override=True)
 
+os.environ["HF_TOKEN"] = os.getenv("HUGGING_FACE_TOKEN")  # for Hugging Face API access, if needed
+
 class config:
     ROOT_DIR = Path(__file__).resolve().parent
     SKILL_PATH = ROOT_DIR / "skills"
