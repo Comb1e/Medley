@@ -4,14 +4,13 @@ from custom_tools.run_code import check_and_install_packages, execute_python_cod
 from custom_tools.get_code import get_code, get_files_in_folder
 from custom_tools.get_params import get_skill
 
-from skills.MEMORY.scripts.get_memory import load_memories_from_dates, get_relevant_memory
-
 from small_agents.text_related import text_related_generation
 from small_agents.prompt import get_prompt
 
 # ====== define tools ======
 # tool list
-tools = [
+base_tools = [
+    # Base
     Tool(
         name=text_related_generation.name,
         func=text_related_generation,
@@ -35,18 +34,6 @@ tools = [
         input=get_skill.input,
         output=get_skill.output
     ),
-
-    # Memory
-    Tool(
-        name=load_memories_from_dates.name,
-        func=load_memories_from_dates,
-        description=load_memories_from_dates.description,
-    ),
-    Tool(
-        name=get_relevant_memory.name,
-        func=get_relevant_memory,
-        description=get_relevant_memory.description,
-    )
 ]
 
 '''

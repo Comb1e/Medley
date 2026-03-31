@@ -1,6 +1,7 @@
 ---
-name: MEMORY
-description: Tools to get what the user asked before.
+name: RAG
+description: Get the latest knowledge related to user prompts.
+key: rag
 ---
 
 # Read all conversations from a certain day or days

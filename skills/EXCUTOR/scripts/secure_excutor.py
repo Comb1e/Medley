@@ -175,16 +175,6 @@ def _safe_import(name, *args, **kwargs):
 
 builtins.__import__ = _safe_import
 
-# ── Disable exec / eval / compile ────────────
-def _blocked_exec(*a, **k):
-    raise RuntimeError("exec() is disabled in sandbox.")
-
-def _blocked_eval(*a, **k):
-    raise RuntimeError("eval() is disabled in sandbox.")
-
-builtins.exec = _blocked_exec
-builtins.eval = _blocked_eval
-
 # ── User code ────────────────────────────────
 """)
 

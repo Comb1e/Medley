@@ -1,6 +1,7 @@
 ---
-name: MEMORY
-description: Tools to get what the user asked before.
+name: EXCUTOR
+description: Ways to excute code.
+key: excutor
 ---
 
 # Read all conversations from a certain day or days

@@ -2,13 +2,14 @@ import os
 from config import config
 os.environ["DASHSCOPE_API_KEY"] = config.DASHSCOPE_API_KEY
 
-from custom_tools.tools import tools
+from custom_tools.tools import base_tools
 from custom_tools.verification import check_env_vars
-from custom_tools.run_code import check_and_install_packages, execute_python_code
 from custom_tools.get_params import get_user_prompt
 
 from small_agents.agent_template import agent
 from small_agents.summarize import MemorySummarizer
+
+from skills.EXCUTOR.scripts.secure_excutor import SecureExecutor
 
 BASE_REQUIRED_ENV_VARS = [
     'BASE_AGENT_NAME',
@@ -25,7 +26,7 @@ if __name__ == "__main__":
     base_agent = agent(
         skill_paths = BASE_SKILL_PATHS,
         type = "base",
-        tools = tools,
+        tools = base_tools,
         enable_memory=True,
         model_name = config.BASE_AGENT_NAME,
         temperature = 0,

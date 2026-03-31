@@ -43,6 +43,9 @@ Today is {date}
 #The first few complete conversations with the user#
 {in_memory}
 
+#Skills Introduction#
+{skills_introduction}
+
 #Skills#
 {skills}
 

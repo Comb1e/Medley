@@ -1,6 +1,7 @@
 ---
 name: MEMORY
 description: Tools to get what the user asked before.
+key: memory
 ---
 
 # Read all conversations from a certain day or days

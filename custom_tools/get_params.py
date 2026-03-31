@@ -1,6 +1,9 @@
 import json
 import re
+import frontmatter
+import os
 from datetime import datetime
+from pathlib import Path
 from langchain_core.messages import AIMessage
 
 from config import config
@@ -106,3 +109,45 @@ def print_used_tokens(token_dict):
     total_tokens = token_dict["total_tokens"]
     token_str = f"Input Tokens: {input_tokens}, Output Tokens: {output_tokens}, Total Tokens: {total_tokens}"
     print(token_str)
+
+def extract_metadata(file_path):
+    """
+    Extracts YAML front matter from a Markdown file.
+
+    Args:
+        file_path (str): Path to the markdown file.
+
+    Returns:
+        dict: A dictionary containing the metadata.
+
+    Raises:
+        FileNotFoundError: If the specified file does not exist.
+        ValueError: If the file format is invalid or missing front matter.
+    """
+
+    # Check if the file exists before attempting to open it
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Error: The file '{file_path}' was not found.")
+
+    try:
+        # Load the post object which contains both metadata and content
+        post = frontmatter.load(file_path)
+
+        # Verify that metadata actually exists (some files might have no front matter)
+        if not post.metadata:
+            raise ValueError("Warning: No front matter metadata found in this file.")
+
+        return post.metadata
+
+    except Exception as e:
+        # Catch any unexpected parsing errors or IO issues
+        raise RuntimeError(f"Error: Failed to parse the file '{file_path}'. Details: {str(e)}")
+
+def get_skills_introduction():
+    skill_folder_path = config.SKILL_PATH
+    skills_introduction = []
+    for item in skill_folder_path.iterdir():
+        if item.is_dir():
+            skill_path = skill_folder_path / item / "SKILL.md"
+            skills_introduction.append(extract_metadata(skill_path))
+    return skills_introduction

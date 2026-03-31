@@ -2,11 +2,11 @@ import os
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
 import json
-
 from pathlib import Path
 
-from custom_tools.get_params import get_skills, get_USER, get_date_by_today, get_action, try_getting_final_answer, get_content_and_metadata, print_used_tokens
+from custom_tools.get_params import get_skills, get_USER, get_date_by_today, get_action, try_getting_final_answer, get_content_and_metadata, print_used_tokens, get_skills_introduction
 from custom_tools.verification import check_env_vars
+from custom_tools.skill_tools import add_tools
 from small_agents.prompt_template import llm_prompt_template, agent_prompt_template
 from small_agents.in_memory import InMemory
 from config import config
@@ -112,6 +112,8 @@ class agent:
             tool = None
             for t in self.tools:
                 if t.name == action:
+                    if t.name == "get_skill":
+                        self.tools = add_tools(self.tools, input[0])
                     tool = t
                     break
             if tool is not None:
@@ -136,6 +138,7 @@ class agent:
                 "iteration": i,
                 "default_prompt_folder": config.PROMPT_PATH,
                 "max_iteration": self.max_iteration,
+                "skills_introduction": get_skills_introduction(),
                 "main_distinctions": self.main_distinctions,
                 "date": get_date_by_today(),
                 "in_memory": self.inMemory,
