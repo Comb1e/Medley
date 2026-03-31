@@ -113,7 +113,7 @@ class agent:
             for t in self.tools:
                 if t.name == action:
                     if t.name == "get_skill":
-                        self.tools = add_tools(self.tools, input[0])
+                        self.tools = add_tools(self.tools, self.skills_introduction, input[0])
                     tool = t
                     break
             if tool is not None:
@@ -132,13 +132,14 @@ class agent:
         self.user, self.inMemory = self.load_memory(user_input)
 
         for i in range(self.max_iteration):
+            self.skills_introduction = get_skills_introduction()
             self.prompt = agent_prompt_template.format(**{
                 "raw_prompt": user_input,
                 "user": self.user,
                 "iteration": i,
                 "default_prompt_folder": config.PROMPT_PATH,
                 "max_iteration": self.max_iteration,
-                "skills_introduction": get_skills_introduction(),
+                "skills_introduction": self.skills_introduction,
                 "main_distinctions": self.main_distinctions,
                 "date": get_date_by_today(),
                 "in_memory": self.inMemory,

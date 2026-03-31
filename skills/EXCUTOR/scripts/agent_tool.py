@@ -65,7 +65,7 @@ TOOL_DEFINITION: dict[str, Any] = {
 # Callable tool function
 # ──────────────────────────────────────────────
 
-def run_python_tool(
+def run_python(
     code: str,
     timeout_seconds: float = 10.0,
     allow_network: bool = False,

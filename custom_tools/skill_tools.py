@@ -1,26 +1,28 @@
+import importlib
 from langchain_core.tools import Tool
 
-from skills.MEMORY.scripts.get_memory import load_memories_from_dates, get_relevant_memory
+from config import config
 
-MEMORY_TOOL = [
-    Tool(
-        name=load_memories_from_dates.name,
-        func=load_memories_from_dates,
-        description=load_memories_from_dates.description,
-    ),
-    Tool(
-        name=get_relevant_memory.name,
-        func=get_relevant_memory,
-        description=get_relevant_memory.description,
-    )
-]
-
-def add_tools(tools: list,key: str):
-    add_tool_list = []
-    if key == "memory":
-        add_tool_list = MEMORY_TOOL
-    else:
-        add_tool_list = []
-    for add_tool in add_tool_list:
-        tools.append(add_tool)
+def add_tools(tools: list, skills_introduction: list, key: str):
+    for skill_dict in skills_introduction:
+        if skill_dict.get('key') == key:
+            name = skill_dict['name']
+            func_dict = skill_dict['func']
+            for py_path in func_dict:
+                funcs = func_dict[py_path]
+                for function in funcs:
+                    module_path = f"skills.{name}.scripts.{py_path}"
+                    module = importlib.import_module(module_path)
+                    if hasattr(module, function):
+                        target_function = getattr(module, function)
+                        print(f"[INFO] Successfully imported {function} from {module_path}")
+                        tools.append(
+                            Tool(
+                            name=function,
+                            func=target_function,
+                            description=skill_dict['description'],
+                        ))
+                        print(tools)
+                    else:
+                        print(f"[Error] Function '{function}' not found in module '{module_path}'.")
     return tools

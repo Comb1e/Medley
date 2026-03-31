@@ -2,6 +2,7 @@
 name: MEMORY
 description: Tools to get what the user asked before.
 key: memory
+func: {"get_memory": ["load_memories_from_dates", "get_relevant_memory"]}
 ---
 
 # Read all conversations from a certain day or days
