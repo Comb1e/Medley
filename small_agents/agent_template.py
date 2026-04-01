@@ -1,10 +1,12 @@
 import os
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
+from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from langchain_core.output_parsers import StrOutputParser
 import json
 from pathlib import Path
 
-from custom_tools.get_params import get_skills, get_USER, get_date_by_today, get_action, try_getting_final_answer, get_content_and_metadata, print_used_tokens, get_skills_introduction
+from custom_tools.get_params import get_skills, get_USER, get_date_by_today, get_action, try_getting_final_answer, get_skills_introduction
 from custom_tools.verification import check_env_vars
 from custom_tools.skill_tools import add_tools
 from small_agents.prompt_template import llm_prompt_template, agent_prompt_template
@@ -36,7 +38,7 @@ class llm:
             model=model_name,
             temperature=0,
         )
-        self.prompt = llm_prompt_template.format(**{
+        self.prompt_dict = {
             "background": self.backgournd,
             "purpose": self.purpose,
             "style": self.style,
@@ -44,10 +46,15 @@ class llm:
             "audience": self.audience,
             "skills": self.skills,
             "other": self.other
-        })
+        }
+        self.chain = (
+            self.prompt_dict |
+            llm_prompt_template |
+            self.chat
+        )
 
     def invoke(self):
-        result = self.chat.invoke(self.prompt)
+        result = self.chain.stream()
         return result.content, self.file_paths
 
 class agent:
@@ -77,6 +84,7 @@ class agent:
             openai_api_key=config.DASHSCOPE_API_KEY,
             base_url=config.DASHSCOPE_BASE_URL,
             model=model_name,
+            streaming=True,
             temperature=0,
         )
 
@@ -131,6 +139,41 @@ class agent:
     def invoke(self, user_input: str):
         self.user, self.inMemory = self.load_memory(user_input)
 
+        for i in range(self.max_iteration):
+            self.skills_introduction = get_skills_introduction()
+            self.prompt_dict = {
+                "raw_prompt": RunnablePassthrough(),
+                "user": RunnableLambda(lambda x: self.user),
+                "iteration": RunnableLambda(lambda x: i),
+                "default_prompt_folder": RunnableLambda(lambda x: config.PROMPT_PATH),
+                "max_iteration": RunnableLambda(lambda x: self.max_iteration),
+                "skills_introduction": RunnableLambda(lambda x: self.skills_introduction),
+                "main_distinctions": RunnableLambda(lambda x: self.main_distinctions),
+                "date": RunnableLambda(lambda x: get_date_by_today()),
+                "in_memory": RunnableLambda(lambda x: self.inMemory),
+                "skills": RunnableLambda(lambda x: self.skills),
+                "tool_callings": RunnableLambda(lambda x: self.tool_callings),
+            }
+            self.chain = (
+                self.prompt_dict |
+                agent_prompt_template |
+                self.chat |
+                StrOutputParser()
+            )
+            content = ""
+            for token in self.chain.stream({"raw_prompt": user_input}):
+                print(token, end="", flush=True)
+                content += token
+            self.reply += content
+            self.tool_calling(content)
+            final_answer = try_getting_final_answer(content)
+            if final_answer != "[INFO] Continue.":
+                break
+        self.save_message(user_input, self.reply)
+        return final_answer
+
+    def invoke_with_token(self, user_input: str):
+        self.user, self.inMemory = self.load_memory(user_input)
         for i in range(self.max_iteration):
             self.skills_introduction = get_skills_introduction()
             self.prompt = agent_prompt_template.format(**{

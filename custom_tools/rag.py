@@ -84,7 +84,7 @@ Answer:""",
 # 1. Shared helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
-def get_llm(streaming: bool = False) -> ChatAnthropic:
+def get_llm(streaming: bool = False):
     return ChatAnthropic(
         model="claude-sonnet-4-20250514",
         anthropic_api_key=ANTHROPIC_API_KEY,
@@ -202,6 +202,23 @@ def get_vector_store(
 # 3. RAG chain builder
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Core Function
+def retrieve(question: str) -> str:
+    # Primary: SemanticSearch cosine similarity retrieval
+    if ss.vector_library:
+        results = ss.query(question, top_k=5)
+        return "\n\n".join(r["text"] for r in results)
+
+    # Fallback: vectorstore MMR retrieval
+    if vectorstore:
+        docs = vectorstore.as_retriever(
+            search_type="mmr",
+            search_kwargs={"k": 5, "fetch_k": 20, "lambda_mult": 0.7},
+        ).invoke(question)
+        return format_docs(docs)
+
+    return ""
+
 def build_rag_chain(ss: SemanticSearch, vectorstore=None, streaming: bool = False):
     """
     Returns a LCEL chain: retriever | prompt | llm | parser
@@ -211,21 +228,6 @@ def build_rag_chain(ss: SemanticSearch, vectorstore=None, streaming: bool = Fals
       - Fallback: vectorstore MMR retriever if ss library is empty
     Works with any vectorstore backend (Chroma or Pinecone).
     """
-    def retrieve(question: str) -> str:
-        # Primary: SemanticSearch cosine similarity retrieval
-        if ss.vector_library:
-            results = ss.query(question, top_k=5)
-            return "\n\n".join(r["text"] for r in results)
-
-        # Fallback: vectorstore MMR retrieval
-        if vectorstore:
-            docs = vectorstore.as_retriever(
-                search_type="mmr",
-                search_kwargs={"k": 5, "fetch_k": 20, "lambda_mult": 0.7},
-            ).invoke(question)
-            return format_docs(docs)
-
-        return ""
 
     llm = get_llm(streaming=streaming)
 

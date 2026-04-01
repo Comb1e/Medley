@@ -65,7 +65,7 @@ Think and act in the following format:
 
 Observation: If there was tool calling. Observe results returned by the tool.
 Thought: Do I need tools? Why?
-Action: Tool name to use.
+Action: Tool name to use. Must be one of the tool names in # Tools information or in the skills you get in get_skill.
 Action Input: Input parameters of the tool.
 
 If the whole task is complete, Do the following steps. If just call one tool and need further calling, do not do these steps.

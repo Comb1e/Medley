@@ -1,18 +1,14 @@
 ---
 name: RAG
-description: Get the latest knowledge related to user prompts.
+description: Get the latest knowledge related to user prompts. Call get_skill to get the full skill.
 key: rag
+func: {"rag": ["retrieve"]}
 ---
 
-# Read all conversations from a certain day or days
+# Get relevant knowledge
 Description: Retrieve conversation records with users on certain dates.
-Tool: load_memories_from_dates
-Input: a list containing multiple items, each is a date like year-month-day. For Example, ["2026-03-27", "2026-03-28"].
-Output: a list containing conversation record for each day.
-Example: If the user wants to know what question was asked on February 18, 2026, call this tool like load_memories_from_dates(["2026-02-18"])
-
-# Obtain issues similar to the current user prompt
-Description: Obtain similar questions to the current one previously asked by the user
-Tool: get_relevant_memory
-Input: user_input
-Output: relevant_memory
+Tool: retrieve
+Input Key0: user_input
+Input Value0: A string containin user input.
+Output: A string containing relevant knowledge
+Example: If users ask specific and time sensitive questions, such as what is the latest version of macOS, call this tool.

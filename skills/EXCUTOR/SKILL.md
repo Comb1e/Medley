@@ -1,6 +1,6 @@
 ---
 name: EXCUTOR
-description: Ways to excute code.
+description: Ways to excute code. Call get_skill to get the full skill.
 key: excutor
 ---
 

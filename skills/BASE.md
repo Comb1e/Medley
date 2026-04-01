@@ -19,7 +19,7 @@ Help the user complete the prompt.
 Attention: For all the tools, the input and output should be a JSON code block in markdown format.
 
 ## get_skill
-- Description: You can use the "key" in the Skills as input to call the get_skill tool to read the skills. Only "memory" available.
+- Description: You can use the "key" in the Skills as input to call the get_skill tool to read the skills. Only keys in #Skills Introduction# are available.
 - Input key0: key
 - Input value0: key_value.
 ### Example

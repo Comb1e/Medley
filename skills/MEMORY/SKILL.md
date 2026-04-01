@@ -1,6 +1,6 @@
 ---
 name: MEMORY
-description: Tools to get what the user asked before.
+description: Tools to get what the user asked before. Call get_skill to get the full skill.
 key: memory
 func: {"get_memory": ["load_memories_from_dates", "get_relevant_memory"]}
 ---

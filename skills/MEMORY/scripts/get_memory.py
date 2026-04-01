@@ -49,7 +49,7 @@ def load_memories_from_dates(date_list_list: list) -> List[Dict[str, Any]]:
     for date in dates:
         folder_path = os.path.join(base_path, date.strftime('%Y-%m-%d'))
         if not os.path.exists(folder_path):
-            raise FileNotFoundError(f"Folder does not exist: {folder_path}")
+            return {"ERROR": f"No requests found on {date.strftime('%Y-%m-%d')}."}
 
     # Collect all parsed objects
     all_objects = []

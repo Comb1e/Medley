@@ -3,4 +3,4 @@ name: user_prompt
 ---
 
 # User Prompt
-what did i ask yesterday
+what is the latest version of vscode
