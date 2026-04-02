@@ -33,6 +33,9 @@ agent_template = '''
 #User habits and preferences#
 {user}
 
+#Context#
+{context}
+
 #Iteration#
 {iteration}
 Inform the user you need more iteration if the task cannot get completed in this iteration but teration reaches {max_iteration}.

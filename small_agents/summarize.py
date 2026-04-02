@@ -144,6 +144,7 @@ def check_today(logs_dir=config.MEMORY_PATH):
         print(f"[INFO] Today's folder already exists: {today_folder}")
         print("[INFO] No back-fill needed.")
         return True
+    today_folder.mkdir(parents=True, exist_ok=True)
     return False
 
 class MemorySummarizer:

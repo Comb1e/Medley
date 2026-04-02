@@ -6,13 +6,13 @@ from pathlib import Path
 from collections import deque
 from small_agents.semantic_agent import SemanticAgent
 class InMemory:
-    def __init__(self, max_history=10, logs_dir=config.MEMORY_PATH):
+    def __init__(self, ss, max_history=10, logs_dir=config.MEMORY_PATH):
         self.max_history = max_history
         self.logs_dir = Path(logs_dir) / datetime.now().strftime("%Y-%m-%d")
         if not self.logs_dir.exists():
             self.logs_dir.mkdir(parents=True, exist_ok=True)
         self.log_path = self.logs_dir / "raw_memories.jsonl"
-        self.agent = SemanticAgent(need_index=False)
+        self.agent = SemanticAgent(ss=ss, need_index=False)
 
         # 2. This list buffers all new messages in THIS session
         self.session_history = deque()  # use deque for FIFO

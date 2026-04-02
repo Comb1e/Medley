@@ -19,6 +19,11 @@ class config:
     GENERATE_PATH = LOG_PATH / "generated_files"
     MEMORY_PATH = LOG_PATH / "memory"
 
+    DATA_BASE_DIR = ROOT_DIR / "data_base"
+    DOCS_DIR = DATA_BASE_DIR / "docs"
+    CHROMA_PERSIST_DIR = DATA_BASE_DIR / "chroma_db"
+    CHROMA_COLLECTION  = "knowledge_base"
+
     DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
     DASHSCOPE_BASE_URL = os.getenv("DASHSCOPE_BASE_URL")
 

@@ -48,3 +48,4 @@ Thumbs.db
 # 数据库
 *.db
 *.sqlite3
+data_base/

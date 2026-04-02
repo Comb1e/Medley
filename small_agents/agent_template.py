@@ -1,14 +1,19 @@
 import os
+
+# ── LangChain core ────────────────────────────────────────────────────────────
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
+
 import json
 from pathlib import Path
 
 from custom_tools.get_params import get_skills, get_USER, get_date_by_today, get_action, try_getting_final_answer, get_skills_introduction
 from custom_tools.verification import check_env_vars
 from custom_tools.skill_tools import add_tools
+from custom_tools.rag import retrieve, SemanticSearchEmbeddings, VectorStoreBackend, load_and_chunk_documents, get_vector_store
+from custom_tools.sentence_search import SemanticSearch
 from small_agents.prompt_template import llm_prompt_template, agent_prompt_template
 from small_agents.in_memory import InMemory
 from config import config
@@ -31,6 +36,7 @@ class llm:
         self.skills =  get_skills(skill_paths)
         self.file_paths = Path(prompt_params["path"]) / prompt_params["folder_name"]
         self.other = other
+        self.content = ""
 
         self.chat = ChatOpenAI(
             openai_api_key=config.DASHSCOPE_API_KEY,
@@ -39,23 +45,26 @@ class llm:
             temperature=0,
         )
         self.prompt_dict = {
-            "background": self.backgournd,
-            "purpose": self.purpose,
-            "style": self.style,
-            "tone": self.tone,
-            "audience": self.audience,
-            "skills": self.skills,
-            "other": self.other
+            "background": RunnableLambda(lambda x: self.backgournd),
+            "purpose": RunnableLambda(lambda x: self.purpose),
+            "style": RunnableLambda(lambda x: self.style),
+            "tone": RunnableLambda(lambda x: self.tone),
+            "audience": RunnableLambda(lambda x: self.audience),
+            "skills": RunnableLambda(lambda x: self.skills),
+            "other": RunnableLambda(lambda x: self.other)
         }
         self.chain = (
             self.prompt_dict |
             llm_prompt_template |
-            self.chat
+            self.chat |
+            StrOutputParser()
         )
 
     def invoke(self):
-        result = self.chain.stream()
-        return result.content, self.file_paths
+        for token in self.chain.stream({"raw_prompt": user_input}):
+            print(token, end="", flush=True)
+            self.content += token
+        return self.content, self.file_paths
 
 class agent:
     def __init__(
@@ -74,6 +83,11 @@ class agent:
         self.main_distinctions = main_distinctions
         self.tool_callings = []
         self.reply = ""
+        self.ss = SemanticSearch()
+        self.embeddings = SemanticSearchEmbeddings(self.ss)
+        self.BACKEND = VectorStoreBackend.CHROMA
+        self.chunks = load_and_chunk_documents(config.DOCS_DIR)
+        self.vectorstore = get_vector_store(self.BACKEND, self.embeddings, chunks=self.chunks, load_existing=False)
 
         self.max_history = max_history
         self.logs_dir = logs_dir
@@ -91,6 +105,7 @@ class agent:
     def init_memory(self):
         if self.enable_memory:
             self.in_memory = InMemory(
+                ss=self.ss,
                 max_history=self.max_history,
                 logs_dir=self.logs_dir
             )
@@ -144,6 +159,7 @@ class agent:
             self.prompt_dict = {
                 "raw_prompt": RunnablePassthrough(),
                 "user": RunnableLambda(lambda x: self.user),
+                "context": RunnableLambda(lambda x: retrieve(user_input, self.vectorstore, self.ss, self.BACKEND)),
                 "iteration": RunnableLambda(lambda x: i),
                 "default_prompt_folder": RunnableLambda(lambda x: config.PROMPT_PATH),
                 "max_iteration": RunnableLambda(lambda x: self.max_iteration),
@@ -179,6 +195,7 @@ class agent:
             self.prompt = agent_prompt_template.format(**{
                 "raw_prompt": user_input,
                 "user": self.user,
+                "context": retrieve(user_input),
                 "iteration": i,
                 "default_prompt_folder": config.PROMPT_PATH,
                 "max_iteration": self.max_iteration,

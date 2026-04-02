@@ -10,3 +10,4 @@ python-dotenv
 sentence_transformers
 typing
 python-frontmatter
+chardet

@@ -6,7 +6,6 @@ from sentence_transformers import SentenceTransformer
 
 from config import config
 from custom_tools.verification import check_env_vars
-from custom_tools.sentence_search import SemanticSearch
 
 VECTOR_MEMORY_REQUIRED_ENV_VARS = [
     "EMBEDDINGS_MODEL_NAME"
@@ -14,10 +13,10 @@ VECTOR_MEMORY_REQUIRED_ENV_VARS = [
 check_env_vars(VECTOR_MEMORY_REQUIRED_ENV_VARS)
 
 class VectorMemory:
-    def __init__(self, need_index, logs_dir=config.MEMORY_PATH, days_to_index=7):
+    def __init__(self, need_index, ss, logs_dir=config.MEMORY_PATH, days_to_index=7):
         self.logs_dir = logs_dir
         self.days_to_index = days_to_index
-        self.searcher = SemanticSearch()
+        self.searcher = ss
         if need_index:
             self._index_recent_days()
 
@@ -200,8 +199,8 @@ class VectorMemory:
 
 
 class SemanticAgent:
-    def __init__(self, need_index, days_to_index=7):
-        self.memory = VectorMemory(need_index=need_index, days_to_index=days_to_index)
+    def __init__(self, need_index, ss, days_to_index=7):
+        self.memory = VectorMemory(ss=ss, need_index=need_index, days_to_index=days_to_index)
 
     def get_relevant(self, user_input: str, top_k: int = 3):
         return self.memory.retrieve(user_input, top_k)

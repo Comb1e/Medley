@@ -11,21 +11,20 @@ from typing import AsyncIterator
 
 import numpy as np
 from custom_tools.sentence_search import SemanticSearch
+from config import config
 
 # ── LangChain core ────────────────────────────────────────────────────────────
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import PromptTemplate
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
-from langchain_anthropic import ChatAnthropic
 
 # ── Pinecone ──────────────────────────────────────────────────────────────────
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # LangChain Embeddings adapter — lets SemanticSearch plug into Chroma/Pinecone
@@ -62,10 +61,6 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "your-anthropic-api-key")
 PINECONE_API_KEY  = os.getenv("PINECONE_API_KEY",  "your-pinecone-api-key")
 PINECONE_INDEX    = os.getenv("PINECONE_INDEX",     "langchain-rag")
 
-CHROMA_PERSIST_DIR = "./chroma_db"
-CHROMA_COLLECTION  = "knowledge_base"
-DOCS_DIR           = "./docs"
-
 PROMPT_TEMPLATE = PromptTemplate(
     input_variables=["context", "question"],
     template="""Use the retrieved context below to answer the question.
@@ -94,8 +89,12 @@ def get_llm(streaming: bool = False):
 
 
 def load_and_chunk_documents(docs_dir: str) -> list[Document]:
-    loader = DirectoryLoader(docs_dir, glob="**/*.txt", loader_cls=TextLoader)
-    documents = loader.load()
+    try:
+        loader = DirectoryLoader(docs_dir, glob="**/*.txt", loader_cls=TextLoader, loader_kwargs={"encoding": "utf-8"})
+        documents = loader.load()
+    except:
+        loader = DirectoryLoader(docs_dir, glob="**/*.txt", loader_cls=TextLoader)
+        documents = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=512,
@@ -130,19 +129,19 @@ def build_chroma_store(chunks: list[Document], embeddings: SemanticSearchEmbeddi
     store = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
-        persist_directory=CHROMA_PERSIST_DIR,
-        collection_name=CHROMA_COLLECTION,
+        persist_directory=str(config.CHROMA_PERSIST_DIR),
+        collection_name=config.CHROMA_COLLECTION,
     )
-    print(f"Chroma store persisted -> {CHROMA_PERSIST_DIR}")
+    print(f"Chroma store persisted -> {str(config.CHROMA_PERSIST_DIR)}")
     return store
 
 
 def load_chroma_store(embeddings: SemanticSearchEmbeddings) -> Chroma:
     """Load an existing persisted Chroma store (skip re-ingestion)."""
     return Chroma(
-        persist_directory=CHROMA_PERSIST_DIR,
+        persist_directory=str(config.CHROMA_PERSIST_DIR),
         embedding_function=embeddings,
-        collection_name=CHROMA_COLLECTION,
+        collection_name=config.CHROMA_COLLECTION,
     )
 
 
@@ -203,18 +202,27 @@ def get_vector_store(
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Core Function
-def retrieve(question: str) -> str:
+def retrieve(question: str, vector_store, ss: SemanticSearch, BACKEND) -> str:
+    if BACKEND == VectorStoreBackend.CHROMA:
+        print("\n[Similarity Search with Scores]")
+        results = vector_store.similarity_search_with_score(question, k=3)
+        for doc, score in results:
+            print(f"Score: {score:.3f} | {doc.page_content[:100]}...")
+        return results
+
     # Primary: SemanticSearch cosine similarity retrieval
     if ss.vector_library:
         results = ss.query(question, top_k=5)
+        print(results)
         return "\n\n".join(r["text"] for r in results)
 
     # Fallback: vectorstore MMR retrieval
-    if vectorstore:
-        docs = vectorstore.as_retriever(
+    if vector_store:
+        docs = vector_store.as_retriever(
             search_type="mmr",
             search_kwargs={"k": 5, "fetch_k": 20, "lambda_mult": 0.7},
         ).invoke(question)
+        print(docs)
         return format_docs(docs)
 
     return ""
