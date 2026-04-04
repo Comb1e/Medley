@@ -25,7 +25,7 @@ REQUIRED_ENV_VARS = [
 check_env_vars(REQUIRED_ENV_VARS)
 
 class llm:
-    def __init__(self, json_path, skill_paths, other, project_architecture, model_name="qwen-plus", temperature=0):
+    def __init__(self, json_path, skill_paths, error_before, other, project_architecture, model_name="qwen-plus", temperature=0):
         with open(json_path, "r", encoding="utf-8") as f:
             prompt_params = json.load(f)
         self.backgournd = prompt_params["background"]
@@ -38,6 +38,7 @@ class llm:
         self.other = other
         self.content = ""
         self.project_architecture = project_architecture
+        self.error_before = error_before
 
         self.chat = ChatOpenAI(
             openai_api_key=config.DASHSCOPE_API_KEY,
@@ -46,6 +47,7 @@ class llm:
             temperature=0,
         )
         self.prompt_dict = {
+            "error_before": RunnableLambda(lambda x: self.error_before),
             "background": RunnableLambda(lambda x: self.backgournd),
             "purpose": RunnableLambda(lambda x: self.purpose),
             "style": RunnableLambda(lambda x: self.style),

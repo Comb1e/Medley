@@ -3,6 +3,11 @@ from langchain_core.prompts import PromptTemplate
 
 # ====== Prompt Template ======
 llm_template = '''
+#Error Before#
+Format Invalid. Do not use Newline Characters to do line breaks. Only '\n' is available for line breaks.
+Format Invalid. Output is not a json file format.
+{error_before}
+
 #Background#
 {background}
 

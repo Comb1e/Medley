@@ -7,6 +7,7 @@ description: Ways to solve problems
 1. If the user's prompt can be explained in a few sentences, answer directly. But do not directly generate any code or argumentative paper. Use tools to do those.
 2. Once you can only use one tool.
 3. Must read the full user prompt and fully understand it before beginning to solve it.
+4. Must output "Final Answer:" to end the iteration.
 
 # Task
 Help the user complete the prompt.

@@ -60,22 +60,23 @@ def text_related_generation(input):
         other = ""
 
     llm_skill_paths, llm_model_name = get_llm_params(json_path)
-    coding_llm = llm(
-        json_path = json_path,
-        skill_paths = llm_skill_paths,
-        other = other,
-        project_architecture = input[1],
-        model_name = llm_model_name,
-        temperature = 0
-    )
-    result, file_paths = coding_llm.invoke()
+    error_before = ""
+    for i in range(3):
+        coding_llm = llm(
+            json_path = json_path,
+            skill_paths = llm_skill_paths,
+            other = other,
+            error_before = error_before,
+            project_architecture = input[1],
+            model_name = llm_model_name,
+            temperature = 0
+        )
+        result, file_paths = coding_llm.invoke()
 
-    try:
-        result_dict = ast.literal_eval(result)
-    except:
-        print(result)
-        result_list[1] = "[ERROR] The prompt is inaccurate. Regenerate the prompt and use this tool."
-        return result_list
+        try:
+            result_dict = ast.literal_eval(result)
+        except:
+            error_before += "Format Invalid. Output is not a json file format."
 
     for key in result_dict.keys():
         error_msg = is_valid_windows_path_format(str(file_paths / key))

@@ -27,12 +27,24 @@ output:
     "file_name1.py": "code1.0
     code1.1
 
-    code1.2",
-    "file_name2.cpp": "code2",
+    code1.2"
 }
-error reason: use Newline Characters to do line breaks
+error reason: use Newline Characters to do line breaks. Only "\n" is available for line breaks.
 correct:
 {
     "file_name1.py": "code1.0  \ncode1.1  \ncode1.2",
-    "file_name2.cpp": "code2",
+}
+2.
+output:
+{
+    "file_name1.py": "code1.0  \ncode1.1  \ncode1.2",
+}
+{
+    "file_name2.py": "code2.0  \ncode2.1  \ncode2.2",
+}
+error reason: Output two json files. Only one json file is available.
+correct:
+{
+    "file_name1.py": "code1.0  \ncode1.1  \ncode1.2",
+    "file_name2.py": "code2.0  \ncode2.1  \ncode2.2",
 }

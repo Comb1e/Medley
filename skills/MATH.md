@@ -11,7 +11,7 @@ description: >
 ---
 
 # Output
-The output language should be latex and suffix should be .tex
+The output language should be markdown and suffix should be .md
 
 # Math Problem-Solving Paradigm
 

@@ -4,7 +4,7 @@ description: Considerations for optimizing prompt.
 ---
 
 # Core
-WARNING: Do Not write code!!! Do Not write other articles!!!
+WARNING: Do Not write code!!! Do Not write other articles!!! Do not directly solve the promblem!!!
 Only need to provide detailed descriptions and standardize the user's prompt.
 
 # Task
@@ -24,7 +24,7 @@ Attention: For all the tools, the input and output should be a JSON code block i
 - Description: Get all file names under the specified path.
 - Input key0: folder_path
 - Input value0: a string containing folder path.
-- Attention: If there are files with names similar to the current task in the folder, please note that this is not related to your task and there is no need to re execute the task because of it.
+- Attention: This tool is only for avoiding name confiction. If there are files with names similar to the current task in the folder, please note that this is not related to your task and there is no need to re-execute the task because of it.
 
 ## generate_prompt_params
 - Description: Generate prompt params as a json file
