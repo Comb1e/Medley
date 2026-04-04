@@ -67,3 +67,8 @@ After a first working version:
 # Preferences
 1. Notes need to be concise.
 2. Do not mark the language before the output dict.
+3. The README.md should at least containing：
+📝 Introduction
+✨ Key Features
+🚀 Quick Start
+📄 License

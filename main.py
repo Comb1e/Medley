@@ -5,9 +5,6 @@ os.environ["DASHSCOPE_API_KEY"] = config.DASHSCOPE_API_KEY
 from custom_tools.tools import base_tools
 from custom_tools.verification import check_env_vars
 from custom_tools.get_params import get_user_prompt
-from pathlib import Path
-from custom_tools.verification import is_valid_windows_path_format
-from custom_tools.create_proj import create_file
 
 from small_agents.agent_template import agent
 from small_agents.summarize import MemorySummarizer

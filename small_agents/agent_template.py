@@ -25,7 +25,7 @@ REQUIRED_ENV_VARS = [
 check_env_vars(REQUIRED_ENV_VARS)
 
 class llm:
-    def __init__(self, json_path, skill_paths, type, other, project_architecture, model_name="qwen-plus", temperature=0):
+    def __init__(self, json_path, skill_paths, other, project_architecture, model_name="qwen-plus", temperature=0):
         with open(json_path, "r", encoding="utf-8") as f:
             prompt_params = json.load(f)
         self.backgournd = prompt_params["background"]

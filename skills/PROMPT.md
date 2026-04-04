@@ -31,7 +31,7 @@ Attention: For all the tools, the input and output should be a JSON code block i
 - Input key0: file_name.
 - Input value0: A string contains the name of the json file, including suffix.
 - Input key1: type.
-- Input value1: A string contains classification of the prompt. It should be one of the 'coding, text, mixture'.
+- Input value1: A string contains classification of the prompt. It should be one of the 'coding, text, math'.
 - Input key2: background.
 - Input value2: A string contains prompt related context information or prerequisites.
 - Input key3: purpose.
@@ -39,13 +39,13 @@ Attention: For all the tools, the input and output should be a JSON code block i
 - Input key4: style.
 - Input value4: A string contains language style, style or structural format of the output.
 - Input key5: tone.
-- Input value0: A string contains the emotional color or attitude tendency expressed.
+- Input value5: A string contains the emotional color or attitude tendency expressed.
 - Input key6: audience.
-- Input value0: A string contains the reading group after prompt is completed. For example, if the prompt need to generate code, the audience is programmers.
+- Input value6: A string contains the reading group after prompt is completed. For example, if the prompt need to generate code, the audience is programmers.
 - Input key7: folder_name.
-- Input value0: A string contains the name of the folder where the files are stored(not the json file). Use the project name provided by the user. If the user does not provide it, come up with one. For example, if the user want to write a book report on Journey to the West but do not specify the project name, this paramter should be "book_report". Avoid using space there.
+- Input value7: A string contains the name of the folder where the files are stored(not the json file). Use the project name provided by the user. If the user does not provide it, come up with one. For example, if the user want to write a book report on Journey to the West but do not specify the project name, this paramter should be "book_report". Avoid using space there.
 - Input key8: path.
-- Input value0: A string contains the place where files are generated. Follow the second point in #Main Distriction#
+- Input value8: A string contains the place where files are generated. Follow the second point in #Main Distriction#
 
 # Parameter Examples
 ## Input:
@@ -85,7 +85,8 @@ Final Answer:
     "Prompt_json_path": PROMPT_PATH  / "customer_service_prompt.json"
 }
 ```
-Attention: PROMPT_PATH is different from the parameter "path" and should not be the same.
+### Attention:
+1. PROMPT_PATH is different from the parameter "path" and should not be the same.
 
 # Error Examples
 

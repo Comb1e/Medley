@@ -23,6 +23,11 @@ TEXTING_SKILL_PATHS = [
     config.SKILL_PATH / "TEXTING.md"
 ]
 
+MATH_SKILL_PATHS = [
+    config.SKILL_PATH / "TEXT_RELATED.md",
+    config.SKILL_PATH / "MATH.md"
+]
+
 def get_llm_params(json_path):
     with open(json_path, "r", encoding="utf-8") as f:
         task_type = json.load(f)["type"]
@@ -30,6 +35,8 @@ def get_llm_params(json_path):
         return CODING_SKILL_PATHS, config.CODING_MODEL_NAME
     elif task_type == "text":
         return TEXTING_SKILL_PATHS, config.TEXTING_MODEL_NAME
+    elif task_type == "math":
+        return TEXTING_SKILL_PATHS, config.MATH_MODEL_NAME
 
 # ====== LLM =====
 def text_related_generation(input):
@@ -56,7 +63,6 @@ def text_related_generation(input):
     coding_llm = llm(
         json_path = json_path,
         skill_paths = llm_skill_paths,
-        type = "coding",
         other = other,
         project_architecture = input[1],
         model_name = llm_model_name,

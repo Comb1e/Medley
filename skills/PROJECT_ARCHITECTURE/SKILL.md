@@ -1,6 +1,6 @@
 ---
 name: PROJECT_ARCHITECTURE
-description: Code Project Architecture Planning Skills. Get this skill before call text_related_generation.
+description: Code Project Architecture Planning Skills. Get this skill before call text_related_generation to get code.
 key: project_architecture
 func: {}
 ---
@@ -92,10 +92,3 @@ An architecture that lives only in your head is a liability.
 - Write a short architecture overview doc — one page is enough for most projects
 - Make the structure self-evident in the codebase itself through naming, folder layout, and READMEs
 - Treat architecture as a living document, not a one-time artifact
-
-## Notations
-1. The README.md should at least containing：
-📝 Introduction
-✨ Key Features
-🚀 Quick Start
-📄 License

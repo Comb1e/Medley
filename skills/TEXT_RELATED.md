@@ -4,7 +4,7 @@ description: Specification for generating text.
 ---
 
 # Core
-1. Line breaks can only use "\n". #Do not use Newline Characters!!!#
+1. Line breaks can only use "\n"!!!!!! # Do not use Newline Characters!!!!! #
 2. Double quotes inside values must be escaped.
 
 # Output
@@ -18,4 +18,21 @@ description: Specification for generating text.
 ## Example2
 {
     "file_name1.md": "text1"
+}
+
+# Error Output
+1.
+output:
+{
+    "file_name1.py": "code1.0
+    code1.1
+
+    code1.2",
+    "file_name2.cpp": "code2",
+}
+error reason: use Newline Characters to do line breaks
+correct:
+{
+    "file_name1.py": "code1.0  \ncode1.1  \ncode1.2",
+    "file_name2.cpp": "code2",
 }
