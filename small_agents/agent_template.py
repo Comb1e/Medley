@@ -12,7 +12,7 @@ from pathlib import Path
 from custom_tools.get_params import get_skills, get_USER, get_date_by_today, get_action, try_getting_final_answer, get_skills_introduction
 from custom_tools.verification import check_env_vars
 from custom_tools.skill_tools import add_tools
-from custom_tools.rag import retrieve, SemanticSearchEmbeddings, VectorStoreBackend, load_and_chunk_documents, get_vector_store
+from custom_tools.rag import retrieve, SemanticSearchEmbeddings, VectorStoreBackend, load_and_chunk_documents, get_vector_store, get_rag_params
 from custom_tools.sentence_search import SemanticSearch
 from small_agents.prompt_template import llm_prompt_template, agent_prompt_template
 from small_agents.in_memory import InMemory
@@ -25,7 +25,7 @@ REQUIRED_ENV_VARS = [
 check_env_vars(REQUIRED_ENV_VARS)
 
 class llm:
-    def __init__(self, json_path, skill_paths, type, other, model_name="qwen-plus", temperature=0):
+    def __init__(self, json_path, skill_paths, type, other, project_architecture, model_name="qwen-plus", temperature=0):
         with open(json_path, "r", encoding="utf-8") as f:
             prompt_params = json.load(f)
         self.backgournd = prompt_params["background"]
@@ -37,6 +37,7 @@ class llm:
         self.file_paths = Path(prompt_params["path"]) / prompt_params["folder_name"]
         self.other = other
         self.content = ""
+        self.project_architecture = project_architecture
 
         self.chat = ChatOpenAI(
             openai_api_key=config.DASHSCOPE_API_KEY,
@@ -51,7 +52,8 @@ class llm:
             "tone": RunnableLambda(lambda x: self.tone),
             "audience": RunnableLambda(lambda x: self.audience),
             "skills": RunnableLambda(lambda x: self.skills),
-            "other": RunnableLambda(lambda x: self.other)
+            "other": RunnableLambda(lambda x: self.other),
+            "project_architecture": RunnableLambda(lambda x: self.project_architecture)
         }
         self.chain = (
             self.prompt_dict |
@@ -61,7 +63,7 @@ class llm:
         )
 
     def invoke(self):
-        for token in self.chain.stream({"raw_prompt": user_input}):
+        for token in self.chain.stream({"raw_prompt": ""}):
             print(token, end="", flush=True)
             self.content += token
         return self.content, self.file_paths
@@ -83,11 +85,9 @@ class agent:
         self.main_distinctions = main_distinctions
         self.tool_callings = []
         self.reply = ""
+        self.relevant = ""
         self.ss = SemanticSearch()
-        self.embeddings = SemanticSearchEmbeddings(self.ss)
-        self.BACKEND = VectorStoreBackend.CHROMA
-        self.chunks = load_and_chunk_documents(config.DOCS_DIR)
-        self.vectorstore = get_vector_store(self.BACKEND, self.embeddings, chunks=self.chunks, load_existing=False)
+        self.embeddings, self.BACKEND, self.vectorstore = get_rag_params(self.ss)
 
         self.max_history = max_history
         self.logs_dir = logs_dir
@@ -152,6 +152,7 @@ class agent:
         self.tool_callings.append(tool_calling)
 
     def invoke(self, user_input: str):
+        self.relevant = retrieve(user_input, self.vectorstore, self.ss, self.BACKEND)
         self.user, self.inMemory = self.load_memory(user_input)
 
         for i in range(self.max_iteration):
@@ -159,7 +160,7 @@ class agent:
             self.prompt_dict = {
                 "raw_prompt": RunnablePassthrough(),
                 "user": RunnableLambda(lambda x: self.user),
-                "context": RunnableLambda(lambda x: retrieve(user_input, self.vectorstore, self.ss, self.BACKEND)),
+                "context": RunnableLambda(lambda x: self.relevant),
                 "iteration": RunnableLambda(lambda x: i),
                 "default_prompt_folder": RunnableLambda(lambda x: config.PROMPT_PATH),
                 "max_iteration": RunnableLambda(lambda x: self.max_iteration),
@@ -189,13 +190,14 @@ class agent:
         return final_answer
 
     def invoke_with_token(self, user_input: str):
+        self.relevant = retrieve(user_input, self.vectorstore, self.ss, self.BACKEND)
         self.user, self.inMemory = self.load_memory(user_input)
         for i in range(self.max_iteration):
             self.skills_introduction = get_skills_introduction()
             self.prompt = agent_prompt_template.format(**{
                 "raw_prompt": user_input,
                 "user": self.user,
-                "context": retrieve(user_input),
+                "context": self.relevant,
                 "iteration": i,
                 "default_prompt_folder": config.PROMPT_PATH,
                 "max_iteration": self.max_iteration,

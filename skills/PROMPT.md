@@ -24,6 +24,7 @@ Attention: For all the tools, the input and output should be a JSON code block i
 - Description: Get all file names under the specified path.
 - Input key0: folder_path
 - Input value0: a string containing folder path.
+- Attention: If there are files with names similar to the current task in the folder, please note that this is not related to your task and there is no need to re execute the task because of it.
 
 ## generate_prompt_params
 - Description: Generate prompt params as a json file
@@ -85,3 +86,19 @@ Final Answer:
 }
 ```
 Attention: PROMPT_PATH is different from the parameter "path" and should not be the same.
+
+# Error Examples
+
+## Error Output
+1. Direnctly output the params:
+{
+  "prompt_classification": "",
+  "optimized_prompt_description": "",
+  "background": "",
+  "purpose": "",
+  "style": "",
+  "tone": "",
+  "audience": ",
+  "folder_name": "",
+  "path": ""
+}

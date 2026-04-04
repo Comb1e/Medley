@@ -21,7 +21,7 @@ def get_prompt(raw_prompt):
     get_prompt_agent = agent(
         type = "prompt",
         skill_paths = PROMPT_SKILL_PATHS,
-        max_iteration=3,
+        max_iteration=6,
         model_name = config.PROMPT_AGENT_NAME,
         tools = prompt_tools,
         main_distinctions= f"1. The tool \"get_files_in_folder\" should be use to check the default prompt folder.\n 2. The parameter \"path\" should be the path indicated by the user in #Raw Prompt#. If the user did not indicate one, it should be {config.GENERATE_PATH}.",

@@ -24,6 +24,10 @@ class config:
     CHROMA_PERSIST_DIR = DATA_BASE_DIR / "chroma_db"
     CHROMA_COLLECTION  = "knowledge_base"
 
+    # Manifest file: stored alongside the Chroma persist dir for easy co-location.
+    # Tracks which .txt files have already been ingested so they can be skipped.
+    MANIFEST_PATH = CHROMA_PERSIST_DIR / "ingested_files.json"
+
     DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
     DASHSCOPE_BASE_URL = os.getenv("DASHSCOPE_BASE_URL")
 

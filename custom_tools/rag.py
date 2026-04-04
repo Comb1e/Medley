@@ -2,19 +2,22 @@
 RAG Pipeline: LangChain + Chroma + Pinecone
 Features: streaming responses, async queries, swappable vector stores
 Retrieval: powered by SemanticSearch (SentenceTransformer-based)
+Incremental ingestion: skips already-converted txt files via manifest
 """
 
 import asyncio
+import json
 import os
 from enum import Enum
-from typing import AsyncIterator
+from pathlib import Path
+from typing import AsyncIterator, Generator
 
 import numpy as np
 from custom_tools.sentence_search import SemanticSearch
 from config import config
 
 # ── LangChain core ────────────────────────────────────────────────────────────
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import PromptTemplate
@@ -76,7 +79,49 @@ Answer:""",
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 1. Shared helpers
+# 1. Manifest helpers — track which files have already been ingested
+# ─────────────────────────────────────────────────────────────────────────────
+
+def load_manifest(manifest_path: Path = config.MANIFEST_PATH) -> dict[str, float]:
+    """
+    Load the ingestion manifest from disk.
+
+    Returns a dict mapping absolute file path → last-modified timestamp (mtime).
+    An empty dict is returned when no manifest exists yet (first run).
+    """
+    if manifest_path.exists():
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def save_manifest(
+    manifest: dict[str, float],
+    manifest_path: Path = config.MANIFEST_PATH,
+) -> None:
+    """Persist the ingestion manifest to disk (atomic-ish write)."""
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+    print(f"Manifest saved -> {manifest_path} ({len(manifest)} entries)")
+
+
+def _get_new_files(docs_dir: str, manifest: dict[str, float]) -> list[Path]:
+    """
+    Return .txt files in docs_dir that are either absent from the manifest
+    or whose mtime has changed since they were last ingested.
+    """
+    new_files = []
+    for path in sorted(Path(docs_dir).rglob("*.txt")):
+        key = str(path.resolve())
+        mtime = path.stat().st_mtime
+        if key not in manifest or manifest[key] != mtime:
+            new_files.append(path)
+    return new_files
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2. Shared helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
 def get_llm(streaming: bool = False):
@@ -87,23 +132,115 @@ def get_llm(streaming: bool = False):
         streaming=streaming,
     )
 
-
-def load_and_chunk_documents(docs_dir: str) -> list[Document]:
+def _stream_large_txt(path: Path, block_chars: int = 5 * 1024 * 1024) -> Generator[Document, None, None]:
+    """
+    Reads a large text file in character blocks to prevent OOM.
+    Yields Document objects incrementally rather than loading the entire file at once.
+    """
     try:
-        loader = DirectoryLoader(docs_dir, glob="**/*.txt", loader_cls=TextLoader, loader_kwargs={"encoding": "utf-8"})
-        documents = loader.load()
-    except:
-        loader = DirectoryLoader(docs_dir, glob="**/*.txt", loader_cls=TextLoader)
-        documents = loader.load()
+        with open(path, "r", encoding="utf-8") as f:
+            while True:
+                chunk = f.read(block_chars)
+                if not chunk:
+                    break
+                yield Document(page_content=chunk, metadata={"source": str(path)})
+    except UnicodeDecodeError:
+        # Fallback: skip malformed characters instead of failing completely
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
+            while True:
+                chunk = f.read(block_chars)
+                if not chunk:
+                    break
+                yield Document(page_content=chunk, metadata={"source": str(path)})
+
+def load_and_chunk_documents(
+    docs_dir: str,
+    manifest: dict[str, float] | None = None,
+    max_batch_bytes: int = 5 * 1024 * 1024,       # Flush chunks after accumulating ~5MB of text
+    max_single_file_bytes: int = 10 * 1024 * 1024, # Switch to streaming mode for files >10MB
+) -> tuple[list[Document], list[Path]]:
+    """
+    Load only new or modified .txt files from docs_dir and split them into
+    chunks. Files already recorded in *manifest* with the same mtime are
+    skipped entirely.
+
+    Returns:
+        chunks     – LangChain Document objects ready for ingestion.
+        new_paths  – the Path objects that were actually loaded (used to
+                     update the manifest after successful ingestion).
+
+    Calling code that does NOT want incremental behaviour can pass
+    manifest={} to force a full reload.
+    """
+    if manifest is None:
+        manifest = load_manifest()
+
+    new_paths = _get_new_files(docs_dir, manifest)
+
+    if not new_paths:
+        print("No new or modified files found — skipping ingestion.")
+        return [], []
+
+    print(f"Found {len(new_paths)} new/modified file(s) to ingest:")
+    for p in new_paths:
+        print(f"  + {p}")
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=512,
         chunk_overlap=50,
         separators=["\n\n", "\n", ".", " "],
     )
-    chunks = splitter.split_documents(documents)
-    print(f"Loaded {len(documents)} docs -> {len(chunks)} chunks")
-    return chunks
+
+    all_chunks: list[Document] = []
+    batch_docs: list[Document] = []
+    current_batch_size = 0
+    successful_paths: list[Path] = []
+
+    for path in new_paths:
+        file_size = os.path.getsize(path)
+
+        try:
+            # Decide loading strategy based on file size
+            if file_size > max_single_file_bytes:
+                print(file_size)
+                print(f"  ⚠️ Large file detected ({file_size / 1024 / 1024:.1f} MB), streaming in blocks...")
+                doc_source = _stream_large_txt(path)
+            else:
+                try:
+                    loader = TextLoader(str(path), encoding="utf-8")
+                except Exception:
+                    loader = TextLoader(str(path))
+                doc_source = iter(loader.load())
+
+            # Process documents incrementally
+            for doc in doc_source:
+                batch_docs.append(doc)
+                # Track exact UTF-8 byte size for accurate memory estimation
+                current_batch_size += len(doc.page_content.encode("utf-8"))
+
+                # Flush immediately when threshold is reached
+                if current_batch_size >= max_batch_bytes:
+                    batch_chunks = splitter.split_documents(batch_docs)
+                    all_chunks.extend(batch_chunks)
+                    batch_docs = []  # Break reference cycle to trigger garbage collection
+                    current_batch_size = 0
+                    print(f"  ✓ Flushed intermediate batch -> {len(batch_chunks)} chunks")
+
+            successful_paths.append(path)
+
+        except Exception as e:
+            print(f"⚠️ Failed to load {path}: {e}")
+            continue
+
+    # Process any remaining documents in the buffer
+    if batch_docs:
+        batch_chunks = splitter.split_documents(batch_docs)
+        all_chunks.extend(batch_chunks)
+        batch_docs = []
+        print(f"  ✓ Flushed final batch -> {len(batch_chunks)} chunks")
+
+    print(f"Successfully processed {len(successful_paths)} file(s) -> {len(all_chunks)} chunks")
+    return all_chunks, successful_paths
 
 
 def ingest_chunks_into_semantic_search(ss: SemanticSearch, chunks: list[Document]) -> None:
@@ -111,6 +248,8 @@ def ingest_chunks_into_semantic_search(ss: SemanticSearch, chunks: list[Document
     Feed all document chunks into SemanticSearch.add_to_library so they
     are available for retrieval via ss.query().
     """
+    if not chunks:
+        return
     texts = [chunk.page_content for chunk in chunks]
     ss.add_to_library(texts)
     print(f"SemanticSearch library populated with {len(texts)} chunks")
@@ -121,7 +260,7 @@ def format_docs(docs: list[Document]) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. Vector store factory — swap between Chroma and Pinecone here
+# 3. Vector store factory — swap between Chroma and Pinecone here
 # ─────────────────────────────────────────────────────────────────────────────
 
 def build_chroma_store(chunks: list[Document], embeddings: SemanticSearchEmbeddings) -> Chroma:
@@ -143,6 +282,48 @@ def load_chroma_store(embeddings: SemanticSearchEmbeddings) -> Chroma:
         embedding_function=embeddings,
         collection_name=config.CHROMA_COLLECTION,
     )
+
+
+def upsert_chroma_store(
+    chunks: list[Document],
+    embeddings: SemanticSearchEmbeddings,
+    max_batch_size: int = 5120,  # Hard cap per ingestion request
+) -> Chroma:
+    """
+    Add new chunks to an existing Chroma collection without wiping it.
+    Processes documents in bounded batches to prevent OOM and respect
+    vector DB rate limits. Falls back to build_chroma_store when the
+    collection doesn't exist yet.
+    """
+    if not chunks:
+        # Nothing to add — just open the existing store.
+        return load_chroma_store(embeddings)
+
+    persist_dir = str(config.CHROMA_PERSIST_DIR)
+    collection_exists = Path(persist_dir).exists() and any(
+        Path(persist_dir).iterdir()
+    )
+
+    if collection_exists:
+        store = load_chroma_store(embeddings)
+        total = len(chunks)
+
+        # Slice chunks into fixed windows capped at max_batch_size
+        for start in range(0, total, max_batch_size):
+            batch = chunks[start : start + max_batch_size]
+
+            # LangChain handles embedding generation & DB upsert internally
+            store.add_documents(batch)
+
+            # Progress feedback after each successful batch
+            batch_num = start // max_batch_size + 1
+            total_batches = (total + max_batch_size - 1) // max_batch_size
+            print(f"  ✓ Upserted batch {batch_num}/{total_batches} ({len(batch)} chunks)")
+
+        print(f"Chroma store updated with {total} new chunks across {total_batches} batch(es)")
+        return store
+
+    return build_chroma_store(chunks, embeddings)
 
 
 def build_pinecone_store(chunks: list[Document], embeddings: SemanticSearchEmbeddings) -> PineconeVectorStore:
@@ -185,30 +366,42 @@ def get_vector_store(
     """
     Unified factory. Pass chunks to ingest, or load_existing=True to skip ingestion.
 
+    Incremental mode: pass the *new* chunks only — Chroma uses add_documents()
+    to append rather than rebuild, and Pinecone upserts naturally.
+
     Usage:
-        store = get_vector_store(VectorStoreBackend.CHROMA, embeddings, chunks=chunks)
+        store = get_vector_store(VectorStoreBackend.CHROMA, embeddings, chunks=new_chunks)
         store = get_vector_store(VectorStoreBackend.PINECONE, embeddings, load_existing=True)
     """
     if backend == VectorStoreBackend.CHROMA:
-        return load_chroma_store(embeddings) if load_existing else build_chroma_store(chunks, embeddings)
+        if load_existing:
+            return load_chroma_store(embeddings)
+        return upsert_chroma_store(chunks or [], embeddings)
+
     elif backend == VectorStoreBackend.PINECONE:
-        return load_pinecone_store(embeddings) if load_existing else build_pinecone_store(chunks, embeddings)
+        if load_existing or not chunks:
+            return load_pinecone_store(embeddings)
+        return build_pinecone_store(chunks, embeddings)
+
     else:
         raise ValueError(f"Unknown backend: {backend}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 3. RAG chain builder
+# 4. RAG chain builder
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Core Function
-def retrieve(question: str, vector_store, ss: SemanticSearch, BACKEND) -> str:
+def retrieve(question: str, vector_store, ss: SemanticSearch, BACKEND):
     if BACKEND == VectorStoreBackend.CHROMA:
         print("\n[Similarity Search with Scores]")
         results = vector_store.similarity_search_with_score(question, k=3)
+        result = []
         for doc, score in results:
-            print(f"Score: {score:.3f} | {doc.page_content[:100]}...")
-        return results
+            if score > 1.5:
+                result.append(doc)
+                print(f"Score: {score:.3f} | {doc.page_content[:100]}...")
+        return result
 
     # Primary: SemanticSearch cosine similarity retrieval
     if ss.vector_library:
@@ -249,7 +442,7 @@ def build_rag_chain(ss: SemanticSearch, vectorstore=None, streaming: bool = Fals
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4. Streaming response
+# 5. Streaming response
 # ─────────────────────────────────────────────────────────────────────────────
 
 def stream_query(ss: SemanticSearch, question: str, vectorstore=None) -> None:
@@ -267,7 +460,7 @@ def stream_query(ss: SemanticSearch, question: str, vectorstore=None) -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5. Async queries
+# 6. Async queries
 # ─────────────────────────────────────────────────────────────────────────────
 
 async def async_query(ss: SemanticSearch, question: str, vectorstore=None) -> str:
@@ -320,8 +513,37 @@ async def run_async_examples(ss: SemanticSearch, vectorstore=None) -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6. Main — wire everything together
+# 7. Main — wire everything together
 # ─────────────────────────────────────────────────────────────────────────────
+
+def get_rag_params(ss: SemanticSearch):
+    embeddings = SemanticSearchEmbeddings(ss)   # LangChain adapter
+
+    # ── Choose backend here ─────────────────────────────────────────────────
+    BACKEND = VectorStoreBackend.CHROMA
+
+    # ── Load manifest (tracks previously ingested files) ────────────────────
+    manifest = load_manifest()
+
+    # ── Load and chunk only new/modified documents ──────────────────────────
+    # Returns empty lists when everything is already up to date.
+    new_chunks, new_paths = load_and_chunk_documents(config.DOCS_DIR, manifest)
+
+    # ── Populate SemanticSearch with new chunks only ─────────────────────────
+    ingest_chunks_into_semantic_search(ss, new_chunks)
+
+    # ── Upsert only new chunks into the vectorstore ──────────────────────────
+    # upsert_chroma_store (called inside get_vector_store) appends rather than
+    # rebuilding, so existing vectors are preserved.
+    vectorstore = get_vector_store(BACKEND, embeddings, chunks=new_chunks)
+
+    # ── Persist manifest — record newly ingested files ───────────────────────
+    if new_paths:
+        for path in new_paths:
+            manifest[str(path.resolve())] = path.stat().st_mtime
+        save_manifest(manifest)
+
+    return embeddings, BACKEND, vectorstore
 
 def main():
     # ── Initialise SemanticSearch (model loaded once, reused everywhere) ────
@@ -329,18 +551,28 @@ def main():
     embeddings = SemanticSearchEmbeddings(ss)   # LangChain adapter
 
     # ── Choose backend here ─────────────────────────────────────────────────
-    # Swap to VectorStoreBackend.PINECONE to use Pinecone instead of Chroma
     BACKEND = VectorStoreBackend.CHROMA
 
-    # ── Load and chunk documents ────────────────────────────────────────────
-    chunks = load_and_chunk_documents(DOCS_DIR)
+    # ── Load manifest (tracks previously ingested files) ────────────────────
+    manifest = load_manifest()
 
-    # ── Populate SemanticSearch library (primary retriever) ─────────────────
-    ingest_chunks_into_semantic_search(ss, chunks)
+    # ── Load and chunk only new/modified documents ──────────────────────────
+    # Returns empty lists when everything is already up to date.
+    new_chunks, new_paths = load_and_chunk_documents(config.DOCS_DIR, manifest)
 
-    # ── Build vectorstore (fallback retriever + similarity search) ──────────
-    # Set load_existing=True on subsequent runs to skip re-ingestion
-    vectorstore = get_vector_store(BACKEND, embeddings, chunks=chunks, load_existing=False)
+    # ── Populate SemanticSearch with new chunks only ─────────────────────────
+    ingest_chunks_into_semantic_search(ss, new_chunks)
+
+    # ── Upsert only new chunks into the vectorstore ──────────────────────────
+    # upsert_chroma_store (called inside get_vector_store) appends rather than
+    # rebuilding, so existing vectors are preserved.
+    vectorstore = get_vector_store(BACKEND, embeddings, chunks=new_chunks)
+
+    # ── Persist manifest — record newly ingested files ───────────────────────
+    if new_paths:
+        for path in new_paths:
+            manifest[str(path.resolve())] = path.stat().st_mtime
+        save_manifest(manifest)
 
     # ── 1. Sync streaming ───────────────────────────────────────────────────
     stream_query(ss, "What is the refund policy for enterprise customers?", vectorstore)

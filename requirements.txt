@@ -4,6 +4,7 @@ langchain
 langchain_openai
 langchain-community
 langchain-pinecone
+langchain-chroma
 pinecone-client
 chromadb
 python-dotenv

@@ -36,13 +36,13 @@ def text_related_generation(input):
     result_list = [False, "", []]
     json_path = input[0]
 
-    if input[1] != "":
-        error_msg = is_valid_windows_path_format(input[1])
+    if input[2] != "":
+        error_msg = is_valid_windows_path_format(input[2])
         if error_msg[0] == False:
             print("[input] " + input)
             result_list[1] = "[ERROR] Invalid file path. Please provide a valid file path that does not contain illegal characters or reserved names.\n" + error_msg[1]
             return result_list
-        code_path = input[1]
+        code_path = input[2]
         try:
             with open(code_path, 'r', encoding='utf-8') as file:
                 other = file.read()
@@ -58,6 +58,7 @@ def text_related_generation(input):
         skill_paths = llm_skill_paths,
         type = "coding",
         other = other,
+        project_architecture = input[1],
         model_name = llm_model_name,
         temperature = 0
     )

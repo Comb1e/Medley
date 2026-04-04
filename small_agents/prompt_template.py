@@ -21,6 +21,9 @@ llm_template = '''
 #Skills#
 {skills}
 
+#Project Architecture#
+{project_architecture}
+
 {other}
 
 Begin!

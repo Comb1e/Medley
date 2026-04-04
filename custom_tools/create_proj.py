@@ -7,25 +7,18 @@ if __name__ == "__main__":
 else:
     from custom_tools.verification import is_valid_windows_path_format, is_valid_folder_file_name
 
-def create_folder(input_raw) -> list:
+def create_folder(input) -> list:
     """Create a folder in the specified location on the computer"""
     result_list = [False, ""]
-    try:
-        input = ast.literal_eval(input_raw)
-    except:
-        print("[INPUT] " + input_raw)
-        result_list[1] = "[ERROR] Invalid input format. Please provide a valid list of [base_dir, folder_name]."
-        return result_list
-
-    error_msg = is_valid_windows_path_format(input[0])
+    error_msg = is_valid_windows_path_format(str(input[0]))
     if error_msg[0] == False:
-        print("[INPUT] " + input[0])
+        print("[INPUT] " + str(input[0]))
         result_list[1] = "[ERROR] Invalid folder address format. Please provide a valid Windows path.\n" + error_msg[1]
         return result_list
 
-    error_msg = is_valid_folder_file_name(input[1])
+    error_msg = is_valid_folder_file_name(str(input[1]))
     if error_msg[0] == False:
-        print("[INPUT] " + input[1])
+        print("[INPUT] " + str(input[1]))
         result_list[1] = "[ERROR] Invalid folder name. Please provide a valid folder name that does not contain illegal characters or reserved names.\n" + error_msg[1]
         return result_list
 
@@ -72,7 +65,7 @@ def create_file(file_path, code_block):
         # 如果没有代码块，尝试提取所有可能的代码
         code = code_block
 
-    create_folder("['" + str(file_path.parent.parent) + "', '" + str(file_path.parent.name) + "']")
+    create_folder([file_path.parent.parent, file_path.parent.name])
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(code)
 

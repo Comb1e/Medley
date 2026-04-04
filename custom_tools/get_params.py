@@ -12,17 +12,15 @@ user_prompt_path = config.USER_PROMPT_PATH
 USER_path = config.MEMORY_PATH / "USER.md"
 required_skill_path = config.SKILL_PATH
 
-skill_keys = ["memory"]
+skill_keys = [
+    "memory",
+    "project_architecture"
+]
 
-def get_skill(skill_type) -> str:
-    skill_type = skill_type[0]
+def get_skill(skill_key: list) -> str:
+    skill_key = skill_key[0]
 
-    path = required_skill_path
-    if skill_type == "memory":
-        path = path / "MEMORY"
-    else:
-        return "None"
-    path = path / "SKILL.md"
+    path = required_skill_path / skill_key.upper() / "SKILL.md"
     with open(path, "r", encoding="utf-8") as f:
         skill = f.read()
     print("\n") # Make terminal more readable

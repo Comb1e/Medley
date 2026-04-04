@@ -34,8 +34,10 @@ Attention: For all the tools, the input and output should be a JSON code block i
 - Description: When need text, whether code or argumentative paper, Use this tool.
 - Input key0: prompt_json_path
 - Input value0: A string containing the path of the JSON file with the prompt parameter.
-- Input key1: _path
-- Input value1: A string containing the path of the or the article to get fixed. If the task is to generate, leave it empty.
+- Input key1: project_architecture
+- Input value1: A string containing the project architecture, need to generate by yourself.
+- Input key2: _path
+- Input value2: A string containing the path of the or the article to get fixed. If the task is to generate, leave it empty.
 
 ## get_prompt
 - Attention: Must mark the target folder name and path in the input and avoid using space in folder name. For example: 1. The folder should be "box_push" in C:/User. 2. The folder should be "journey_to_the_west in D:/".
