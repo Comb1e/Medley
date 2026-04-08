@@ -67,6 +67,9 @@ Records of previous tool calls:
 #Main distinctions#
 {main_distinctions}
 
+#ROOT_DIR#
+{root_dir}
+
 #Default Prompt Folder#
 All the prompt need should be generated and read in:
 {default_prompt_folder}

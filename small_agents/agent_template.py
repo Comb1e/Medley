@@ -133,7 +133,7 @@ class agent:
         tool_calling = ""
         if action != "None":
             tool_calling += f"Tool calling: {action} with input {input}; "
-            print(f"Tool calling: {action} with input {input}")
+            print(f"\nTool calling: {action} with input {input}")
             tool = None
             for t in self.tools:
                 if t.name == action:
@@ -160,6 +160,7 @@ class agent:
         for i in range(self.max_iteration):
             self.skills_introduction = get_skills_introduction()
             self.prompt_dict = {
+                "root_dir": RunnableLambda(lambda x: config.ROOT_DIR),
                 "raw_prompt": RunnablePassthrough(),
                 "user": RunnableLambda(lambda x: self.user),
                 "context": RunnableLambda(lambda x: self.relevant),
@@ -197,6 +198,7 @@ class agent:
         for i in range(self.max_iteration):
             self.skills_introduction = get_skills_introduction()
             self.prompt = agent_prompt_template.format(**{
+                "root_dir": config.ROOT_DIR,
                 "raw_prompt": user_input,
                 "user": self.user,
                 "context": self.relevant,

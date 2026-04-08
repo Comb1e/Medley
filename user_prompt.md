@@ -3,4 +3,36 @@ name: user_prompt
 ---
 
 # User Prompt
-Think about a novel and specific operations research problem related to Communication and Network that requires the main use of linear programming and integer programming to output a specific problem description, model, and mathematical reasoning for implementation. No code is needed. This question requires as much complexity as possible and the defination of the question must be detailed. The specific background of the problem needs to be provided, and a reasonable and realistic story can be fabricated.
+写一份python代码解决下面问题，使用英文：
+# 背景
+假设一个小区的电动汽车充电服务商为这个小区中的100辆电动汽车提供充电服务，集中调度电动汽车充电，在满足用户第二天行驶需求的前提下，降低充电费用。
+车辆电池容量为33kWh，充电功率上限为3kW，每千瓦时的电能可以行驶6.7km。
+# 要求
+1. 车辆的总能量为(initial_SOC_% * 33kwh)加上充电电能
+2. 车辆总能量减去消耗能量后电池电量必须高于3.3kwh
+3. 调度步长为15min。
+4. 限定同时充电的车辆不超过20辆。
+5. 电动汽车只能在arrival和departure之间充电
+# 问题
+现在已知100辆车的前一天的到家时间arrival、第二天的离家时间departure、前一天到家时的能量(百分比)initial_SOC_%、第二天的预计行驶距离和分时电价。
+以充电服务商总充电费用最小为目标，制定集中式车辆充电调度策略。
+
+# 数据
+保存在“./electric_vehicle_data.xls”中,分别存储在以下几列：
+initial_SOC_%，travel_distance_km，arrival，departure
+
+arrival和departure分别为前一天的到家时间和第二天的离家时间，已转换为小数形式，单位为时，例如19.5，这代表19:30
+initial_SOC_%为车辆初始能量百分比
+
+分时电价如下：
+时段	电价(元/kWh)
+峰时(7:00-11:00和19:00-23:00）	0.8135
+谷时(0:00-7:00和23:00-24:00)	0.351
+平时(11:00-19:00)	0.4883
+
+# 输出
+将结果输出到result.xlsx中
+
+# 注意
+1. departure可能小于arrival，这代表跨过一天，需要正确处理这种情况
+2. 使用线性规划和整数规划解决问题
